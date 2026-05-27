@@ -1,0 +1,55 @@
+:root {
+  --font-sans: "Avenir Next", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+
+  --charcoal-950: #14110f;
+  --charcoal-900: #1d1916;
+  --charcoal-800: #28231f;
+  --espresso-900: #241915;
+  --espresso-800: #32251f;
+  --oxblood-800: #5e1f23;
+  --oxblood-700: #733038;
+  --cognac-600: #9b6548;
+  --sand-300: #d8cbbb;
+  --sand-200: #e8dfd2;
+  --ivory-100: #f7f2ea;
+  --ivory-50: #fbf8f2;
+  --stone-200: #d5d0c8;
+  --taupe-500: #897a6f;
+  --taupe-650: #6e6259;
+  --taupe-800: #4e443d;
+
+  --background: var(--ivory-100);
+  --foreground: var(--charcoal-950);
+  --muted: var(--taupe-650);
+  --subtle: #a29284;
+  --line: rgba(36, 25, 21, 0.14);
+  --line-strong: rgba(36, 25, 21, 0.26);
+  --panel: rgba(251, 248, 242, 0.86);
+  --panel-strong: #fffaf2;
+  --panel-dark: #1b1714;
+  --accent: var(--oxblood-700);
+  --accent-soft: #ead8d2;
+  --metal: #b89a72;
+  --danger: #8f2f35;
+  --success: #6f6a42;
+  --warning: #8a613b;
+  --info: #62554c;
+  --radius: 6px;
+  --radius-sm: 3px;
+  --shadow: 0 22px 70px rgba(36, 25, 21, 0.08);
+  --shadow-soft: 0 1px 0 rgba(255, 255, 255, 0.56) inset;
+  --content-max: 1480px;
+}
+
+.font-display {
+  font-family: var(--font-serif);
+  font-weight: 500;
+}
+
+.surface-noise {
+  background-image:
+    linear-gradient(rgba(20, 17, 15, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(20, 17, 15, 0.014) 1px, transparent 1px);
+  background-size: 34px 34px;
+}

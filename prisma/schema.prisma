@@ -1,0 +1,1137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CLIENT_OWNER
+  STAFF
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+}
+
+enum ReminderStatus {
+  PENDING
+  COMPLETED
+}
+
+enum MessageTemplateType {
+  FOLLOW_UP
+  CAMPAIGN
+  ANNOUNCEMENT
+}
+
+enum RegistrationStatus {
+  NEW
+  REVIEWED
+  CONTACTED
+  ENROLLED
+  NOT_A_FIT
+}
+
+enum RegistrationPaymentStatus {
+  UNPAID
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  WAITLISTED
+  DROPPED
+  COMPLETED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+}
+
+enum BusinessTypeCode {
+  RESTAURANT
+  RETAIL
+  DANCE_STUDIO
+}
+
+enum InquiryStatus {
+  NEW
+  IN_PROGRESS
+  FOLLOWED_UP
+  CLOSED
+  ARCHIVED
+}
+
+enum InquiryKind {
+  RESERVATION
+  CATERING
+  PRIVATE_EVENT
+  PRODUCT_QUESTION
+  REGISTRATION
+  RECITAL
+  CLASS_INFO
+  SUPPORT
+  WHOLESALE
+  GENERAL
+}
+
+enum SaleStatus {
+  DRAFT
+  PAID
+  FULFILLED
+  REFUNDED
+  CANCELLED
+}
+
+enum CampaignChannel {
+  EMAIL
+  SMS
+  EMAIL_SMS
+}
+
+enum CampaignStatus {
+  DRAFT
+  READY
+  SENT
+  PAUSED
+}
+
+enum CampaignEventStatus {
+  QUEUED
+  SENT
+  OPENED
+  CLICKED
+  FAILED
+}
+
+enum FollowUpStatus {
+  DRAFT
+  SENT
+  FAILED
+}
+
+enum SubscriptionPlan {
+  STARTER
+  GROWTH
+  PRO
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  INCOMPLETE
+  CANCELED
+  UNPAID
+  INACTIVE
+}
+
+enum IntegrationProvider {
+  SHOPIFY
+  STRIPE
+  SQUARE
+  TOAST
+  RESEND
+  TWILIO
+  KLAVIYO
+  CRM
+}
+
+enum IntegrationStatus {
+  CONNECTED
+  NEEDS_ATTENTION
+  DISCONNECTED
+  MOCK
+}
+
+enum ModuleKey {
+  CRM
+  INQUIRIES
+  CAMPAIGNS
+  ANALYTICS
+  COMMUNICATIONS
+  PRODUCTS
+  MENU
+  RESERVATIONS
+  EDUCATION
+  INTEGRATIONS
+  BILLING
+}
+
+enum NotificationStatus {
+  UNREAD
+  READ
+  ARCHIVED
+}
+
+enum ReservationStatus {
+  REQUESTED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum CateringStatus {
+  NEW
+  PROPOSAL_SENT
+  CONFIRMED
+  COMPLETED
+  LOST
+}
+
+enum ConversationStatus {
+  OPEN
+  WAITING
+  CLOSED
+}
+
+enum MessageChannel {
+  EMAIL
+  SMS
+  INTERNAL
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+  INTERNAL
+}
+
+enum EventType {
+  CLASS
+  RECITAL
+  PROMOTION
+  PRIVATE_EVENT
+  CAMPAIGN
+}
+
+model BusinessType {
+  id          String           @id @default(cuid())
+  code        BusinessTypeCode @unique
+  name        String
+  description String
+  businesses  Business[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Business {
+  id                           String             @id @default(cuid())
+  name                         String
+  slug                         String             @unique
+  description                  String
+  website                      String?
+  contactEmail                 String?
+  phone                        String?
+  address                      String?
+  logoUrl                      String?
+  brandPrimary                 String             @default("#241915")
+  brandAccent                  String             @default("#733038")
+  timezone                     String             @default("America/New_York")
+  stripeCustomerId             String?            @unique
+  stripeAccountId              String?            @unique
+  stripeOnboardingStatus       String             @default("not_started")
+  stripeChargesEnabled         Boolean            @default(false)
+  stripePayoutsEnabled         Boolean            @default(false)
+  stripeSubscriptionId         String?
+  subscriptionPlan             SubscriptionPlan   @default(STARTER)
+  subscriptionStatus           SubscriptionStatus @default(TRIALING)
+  subscriptionCurrentPeriodEnd DateTime?
+  emailSenderName              String?
+  emailSenderEmail             String?
+  emailDomain                  String?
+  emailVerificationStatus      String             @default("not_configured")
+  launchStatus                 String             @default("NOT_STARTED")
+  launchChecklist              Json?
+  launchNotes                  String?
+  businessTypeId               String
+  businessType                 BusinessType       @relation(fields: [businessTypeId], references: [id])
+  users                        User[]
+  customers                    Customer[]
+  inquiries                    Inquiry[]
+  sales                        Sale[]
+  products                     Product[]
+  menuItems                    MenuItem[]
+  campaigns                    Campaign[]
+  activityLogs                 ActivityLog[]
+  inquiryNotes                 InquiryNote[]
+  followUpEmails               FollowUpEmail[]
+  websites                     Website[]
+  integrations                 Integration[]
+  modules                      Module[]
+  notifications                Notification[]
+  reservations                 Reservation[]
+  cateringInquiries            CateringInquiry[]
+  orders                       Order[]
+  announcements                Announcement[]
+  events                       Event[]
+  studioClasses                StudioClass[]
+  familyProfiles               FamilyProfile[]
+  studentProfiles              StudentProfile[]
+  classEnrollments             ClassEnrollment[]
+  attendanceRecords            AttendanceRecord[]
+  paymentRecords               PaymentRecord[]
+  registrationForms            RegistrationForm[]
+  registrationSubmissions      RegistrationSubmission[]
+  registrationNotes            RegistrationNote[]
+  conversations                Conversation[]
+  messages                     Message[]
+  userInvites                  UserInvite[]
+  reminders                    Reminder[]
+  messageTemplates             MessageTemplate[]
+  pilotFeedback                 PilotFeedback[]
+  createdAt                    DateTime           @default(now())
+  updatedAt                    DateTime           @updatedAt
+
+  @@index([businessTypeId])
+  @@index([subscriptionStatus])
+  @@index([subscriptionPlan])
+}
+
+model User {
+  id             String          @id @default(cuid())
+  email          String          @unique
+  name           String
+  passwordHash   String
+  role           UserRole
+  isActive       Boolean         @default(true)
+  title          String?
+  avatarUrl      String?
+  businessId     String?
+  business       Business?       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+  sentInvites    UserInvite[]    @relation("InvitesSentByUser")
+  inquiryNotes   InquiryNote[]
+  followUpEmails FollowUpEmail[]
+  notifications  Notification[]
+  reminders      Reminder[]
+  registrationNotes RegistrationNote[]
+  pilotFeedback   PilotFeedback[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([businessId])
+  @@index([isActive])
+}
+
+model UserInvite {
+  id          String       @id @default(cuid())
+  email       String
+  role        UserRole
+  status      InviteStatus @default(PENDING)
+  businessId  String
+  business    Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  invitedById String?
+  invitedBy   User?        @relation("InvitesSentByUser", fields: [invitedById], references: [id], onDelete: SetNull)
+  expiresAt   DateTime?
+  acceptedAt  DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, status])
+  @@index([email])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Customer {
+  id                String            @id @default(cuid())
+  businessId        String
+  business          Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name              String
+  email             String?
+  phone             String?
+  company           String?
+  source            String
+  segment           String
+  tags              String[]          @default([])
+  notes             String?
+  registrationSubmissions RegistrationSubmission[]
+  familyProfile     FamilyProfile?
+  lifetimeValue     Decimal           @default(0) @db.Decimal(10, 2)
+  visits            Int               @default(0)
+  lastContactedAt   DateTime?
+  inquiries         Inquiry[]
+  sales             Sale[]
+  campaignEvents    CampaignEvent[]
+  followUpEmails    FollowUpEmail[]
+  reservations      Reservation[]
+  cateringInquiries CateringInquiry[]
+  orders            Order[]
+  conversations     Conversation[]
+  messages          Message[]
+  reminders         Reminder[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, createdAt])
+  @@index([businessId, email])
+}
+
+model Inquiry {
+  id          String          @id @default(cuid())
+  businessId  String
+  business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId  String?
+  customer    Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  kind        InquiryKind
+  status      InquiryStatus   @default(NEW)
+  subject     String
+  message     String
+  leadName    String?
+  leadEmail   String?
+  leadPhone   String?
+  value       Decimal?        @db.Decimal(10, 2)
+  requestedAt DateTime?
+  source      String
+  assignedTo  String?
+  convertedAt DateTime?
+  notes       InquiryNote[]
+  followUps   FollowUpEmail[]
+  reminders   Reminder[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+  @@index([customerId])
+}
+
+model InquiryNote {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  inquiryId  String
+  inquiry    Inquiry  @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  authorId   String?
+  author     User?    @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId, inquiryId])
+  @@index([businessId, createdAt])
+  @@index([authorId])
+}
+
+model FollowUpEmail {
+  id                String         @id @default(cuid())
+  businessId        String
+  business          Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  inquiryId         String?
+  inquiry           Inquiry?       @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  customerId        String?
+  customer          Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdById       String?
+  createdBy         User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  toEmail           String
+  fromEmail         String?
+  subject           String
+  body              String
+  status            FollowUpStatus @default(DRAFT)
+  provider          String?
+  providerMessageId String?
+  errorMessage      String?
+  sentAt            DateTime?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([businessId, inquiryId])
+  @@index([businessId, status])
+  @@index([businessId, customerId])
+  @@index([customerId])
+  @@index([createdById])
+}
+
+model Sale {
+  id         String     @id @default(cuid())
+  businessId String
+  business   Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  saleNumber String
+  channel    String
+  status     SaleStatus @default(PAID)
+  subtotal   Decimal    @db.Decimal(10, 2)
+  tax        Decimal    @default(0) @db.Decimal(10, 2)
+  total      Decimal    @db.Decimal(10, 2)
+  placedAt   DateTime   @default(now())
+  saleItems  SaleItem[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([businessId, saleNumber])
+  @@index([businessId])
+  @@index([businessId, placedAt])
+  @@index([businessId, status])
+  @@index([customerId])
+}
+
+model SaleItem {
+  id         String    @id @default(cuid())
+  saleId     String
+  sale       Sale      @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  productId  String?
+  product    Product?  @relation(fields: [productId], references: [id], onDelete: SetNull)
+  menuItemId String?
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+  name       String
+  quantity   Int       @default(1)
+  unitPrice  Decimal   @db.Decimal(10, 2)
+  total      Decimal   @db.Decimal(10, 2)
+  createdAt  DateTime  @default(now())
+
+  @@index([saleId])
+  @@index([productId])
+  @@index([menuItemId])
+}
+
+model Product {
+  id          String     @id @default(cuid())
+  businessId  String
+  business    Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  category    String
+  price       Decimal    @db.Decimal(10, 2)
+  inventory   Int        @default(0)
+  active      Boolean    @default(true)
+  imageUrl    String?
+  saleItems   SaleItem[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, active])
+  @@index([businessId, category])
+}
+
+model MenuItem {
+  id              String     @id @default(cuid())
+  businessId      String
+  business        Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name            String
+  description     String
+  category        String
+  price           Decimal    @db.Decimal(10, 2)
+  active          Boolean    @default(true)
+  popularityScore Int        @default(0)
+  imageUrl        String?
+  saleItems       SaleItem[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, active])
+  @@index([businessId, category])
+}
+
+model Campaign {
+  id         String          @id @default(cuid())
+  businessId String
+  business   Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name       String
+  channel    CampaignChannel
+  status     CampaignStatus  @default(DRAFT)
+  subject    String
+  body       String
+  audience   String
+  sentAt     DateTime?
+  budget     Decimal?        @db.Decimal(10, 2)
+  events     CampaignEvent[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+}
+
+model CampaignEvent {
+  id         String              @id @default(cuid())
+  campaignId String
+  campaign   Campaign            @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?           @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  status     CampaignEventStatus @default(QUEUED)
+  providerId String?
+  occurredAt DateTime            @default(now())
+
+  @@index([campaignId])
+  @@index([customerId])
+}
+
+model Website {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  domain     String
+  status     String   @default("managed_by_mayke")
+  platform   String   @default("Mayke Agency")
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, status])
+}
+
+model Integration {
+  id           String              @id @default(cuid())
+  businessId   String
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  provider     IntegrationProvider
+  status       IntegrationStatus   @default(MOCK)
+  displayName  String
+  accountLabel String?
+  lastSyncedAt DateTime?
+  config       Json?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@unique([businessId, provider])
+  @@index([businessId])
+  @@index([businessId, status])
+}
+
+model Module {
+  id          String    @id @default(cuid())
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  key         ModuleKey
+  enabled     Boolean   @default(true)
+  label       String
+  description String
+  config      Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([businessId, key])
+  @@index([businessId, enabled])
+}
+
+model Notification {
+  id         String             @id @default(cuid())
+  businessId String
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  userId     String?
+  user       User?              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String
+  body       String
+  status     NotificationStatus @default(UNREAD)
+  href       String?
+  createdAt  DateTime           @default(now())
+  readAt     DateTime?
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+  @@index([userId])
+}
+
+model Reservation {
+  id           String            @id @default(cuid())
+  businessId   String
+  business     Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId   String?
+  customer     Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  partySize    Int
+  requestedFor DateTime
+  status       ReservationStatus @default(REQUESTED)
+  notes        String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, requestedFor])
+  @@index([customerId])
+}
+
+model CateringInquiry {
+  id         String         @id @default(cuid())
+  businessId String
+  business   Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  eventDate  DateTime?
+  guestCount Int?
+  budget     Decimal?       @db.Decimal(10, 2)
+  status     CateringStatus @default(NEW)
+  notes      String
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, eventDate])
+  @@index([customerId])
+}
+
+model Order {
+  id         String     @id @default(cuid())
+  businessId String
+  business   Business   @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?  @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  externalId String?
+  channel    String
+  status     SaleStatus @default(PAID)
+  total      Decimal    @db.Decimal(10, 2)
+  placedAt   DateTime   @default(now())
+  metadata   Json?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@unique([businessId, externalId])
+  @@index([businessId, placedAt])
+  @@index([businessId, status])
+  @@index([customerId])
+}
+
+model Announcement {
+  id          String          @id @default(cuid())
+  businessId  String
+  business    Business        @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  body        String
+  audience    String
+  status      CampaignStatus  @default(DRAFT)
+  channel     CampaignChannel @default(EMAIL)
+  scheduledAt DateTime?
+  sentAt      DateTime?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+}
+
+model Event {
+  id            String    @id @default(cuid())
+  businessId    String
+  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  classId       String?
+  studioClass   StudioClass? @relation(fields: [classId], references: [id], onDelete: SetNull)
+  title         String
+  type          EventType
+  description   String?
+  audience      String    @default("All families")
+  startsAt      DateTime
+  endsAt        DateTime?
+  location      String?
+  capacity      Int?
+  registrations Int       @default(0)
+  archivedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([businessId, type])
+  @@index([businessId, startsAt])
+  @@index([businessId, archivedAt])
+  @@index([classId])
+}
+
+model RegistrationForm {
+  id          String                   @id @default(cuid())
+  businessId  String
+  business    Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  description String?
+  fee         Decimal                  @default(0) @db.Decimal(10, 2)
+  active      Boolean                  @default(true)
+  submissions RegistrationSubmission[]
+  createdAt   DateTime                @default(now())
+  updatedAt   DateTime                @updatedAt
+
+  @@unique([businessId, slug])
+  @@index([businessId, active])
+}
+
+model StudioClass {
+  id          String                   @id @default(cuid())
+  businessId  String
+  business    Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  className   String
+  ageRange    String
+  level       String
+  dayTime     String
+  instructor  String
+  capacity    Int
+  price       Decimal                  @default(0) @db.Decimal(10, 2)
+  active      Boolean                  @default(true)
+  archivedAt  DateTime?
+  submissions RegistrationSubmission[]
+  enrollments ClassEnrollment[]
+  attendanceRecords AttendanceRecord[]
+  paymentRecords PaymentRecord[]
+  events      Event[]
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
+
+  @@index([businessId, active])
+  @@index([businessId, archivedAt])
+}
+
+model FamilyProfile {
+  id                   String                   @id @default(cuid())
+  businessId           String
+  business             Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId           String                   @unique
+  customer             Customer                 @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  familyLastName       String
+  homeAddress          String
+  city                 String
+  state                String
+  zip                  String
+  primaryPhone         String
+  emergencyContactInfo String
+  contact1Name         String
+  contact1Type         String
+  contact1Phone        String
+  contact1Email        String
+  contact2Name         String?
+  contact2Type         String?
+  contact2Phone        String?
+  contact2Email        String?
+  smsConsent           Boolean                  @default(false)
+  notes                String?
+  students             StudentProfile[]
+  registrations        RegistrationSubmission[]
+  paymentRecords       PaymentRecord[]
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+
+  @@index([businessId])
+  @@index([businessId, familyLastName])
+}
+
+model StudentProfile {
+  id                   String        @id @default(cuid())
+  businessId           String
+  business             Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  familyProfileId      String
+  familyProfile        FamilyProfile @relation(fields: [familyProfileId], references: [id], onDelete: Cascade)
+  firstName            String
+  lastName             String
+  gender               String
+  birthDate            DateTime
+  phone                String?
+  tshirtSize           String
+  gradeLevel           String
+  specialNeeds         String?
+  currentClassInterest String
+  enrollments          ClassEnrollment[]
+  attendanceRecords    AttendanceRecord[]
+  paymentRecords       PaymentRecord[]
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@index([businessId])
+  @@index([familyProfileId])
+}
+
+model ClassEnrollment {
+  id               String                  @id @default(cuid())
+  businessId       String
+  business         Business                @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  classId          String
+  studioClass      StudioClass             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentProfileId String
+  studentProfile   StudentProfile          @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  registrationId   String?                 @unique
+  registration     RegistrationSubmission? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+  status           EnrollmentStatus        @default(ACTIVE)
+  enrolledAt       DateTime                @default(now())
+  endedAt          DateTime?
+  attendanceRecords AttendanceRecord[]
+  paymentRecords   PaymentRecord[]
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  @@unique([businessId, classId, studentProfileId])
+  @@index([businessId, status])
+  @@index([classId, status])
+  @@index([studentProfileId, status])
+}
+
+model PaymentRecord {
+  id                String                    @id @default(cuid())
+  businessId        String
+  business          Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  registrationId    String?
+  registration      RegistrationSubmission?   @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+  familyProfileId   String?
+  familyProfile     FamilyProfile?           @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
+  studentProfileId  String?
+  studentProfile    StudentProfile?          @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+  classId           String?
+  studioClass       StudioClass?             @relation(fields: [classId], references: [id], onDelete: SetNull)
+  classEnrollmentId String?
+  classEnrollment   ClassEnrollment?         @relation(fields: [classEnrollmentId], references: [id], onDelete: SetNull)
+  amount            Decimal                   @db.Decimal(10, 2)
+  status            RegistrationPaymentStatus @default(UNPAID)
+  source            String                    @default("manual")
+  note              String?
+  recordedAt        DateTime                  @default(now())
+  createdAt         DateTime                  @default(now())
+  updatedAt         DateTime                  @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, recordedAt])
+  @@index([registrationId])
+  @@index([familyProfileId])
+  @@index([studentProfileId])
+  @@index([classEnrollmentId])
+}
+
+model AttendanceRecord {
+  id                String           @id @default(cuid())
+  businessId        String
+  business          Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  classId           String
+  studioClass       StudioClass      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentProfileId  String
+  studentProfile    StudentProfile   @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  classEnrollmentId String?
+  classEnrollment   ClassEnrollment? @relation(fields: [classEnrollmentId], references: [id], onDelete: SetNull)
+  classDate         DateTime
+  status            AttendanceStatus
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([businessId, classId, studentProfileId, classDate])
+  @@index([businessId, classDate])
+  @@index([classId, classDate])
+  @@index([studentProfileId, classDate])
+}
+
+model RegistrationSubmission {
+  id                     String                    @id @default(cuid())
+  businessId             String
+  business               Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  formId                 String
+  form                   RegistrationForm          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  classId                String?
+  studioClass            StudioClass?              @relation(fields: [classId], references: [id], onDelete: SetNull)
+  customerId             String?
+  customer               Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  familyProfileId        String?
+  familyProfile          FamilyProfile?            @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
+  classEnrollment        ClassEnrollment?
+  status                 RegistrationStatus        @default(NEW)
+  paymentStatus          RegistrationPaymentStatus @default(UNPAID)
+  stripeSessionId        String?
+  stripePaymentIntentId  String?
+  referralSource         String
+  referralName           String?
+  familyLastName         String
+  homeAddress            String
+  city                   String
+  state                  String
+  zip                    String
+  primaryPhone           String
+  emergencyContactInfo   String
+  contact1FirstName      String
+  contact1LastName       String
+  contact1Type           String
+  contact1Phone          String
+  contact1Email          String
+  smsConsent             Boolean                   @default(false)
+  contact2FirstName      String?
+  contact2LastName       String?
+  contact2Type           String?
+  contact2Phone          String?
+  contact2Email          String?
+  studentFirstName       String
+  studentLastName        String
+  studentGender          String
+  birthDate              DateTime
+  studentPhone           String?
+  tshirtSize             String
+  gradeLevel             String
+  specialNeeds           String?
+  classInterest          String
+  trialClass             Boolean                   @default(false)
+  notes                  String?
+  internalNotes          RegistrationNote[]
+  paymentRecords         PaymentRecord[]
+  createdAt              DateTime                  @default(now())
+  updatedAt              DateTime                  @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, paymentStatus])
+  @@index([businessId, createdAt])
+  @@index([formId])
+  @@index([classId])
+  @@index([customerId])
+  @@index([familyProfileId])
+}
+
+model RegistrationNote {
+  id             String                 @id @default(cuid())
+  businessId     String
+  business       Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  registrationId String
+  registration   RegistrationSubmission @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  authorId       String?
+  author         User?                  @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  body           String
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+
+  @@index([businessId, registrationId])
+  @@index([authorId])
+}
+
+model Conversation {
+  id         String             @id @default(cuid())
+  businessId String
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId String?
+  customer   Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  subject    String
+  status     ConversationStatus @default(OPEN)
+  messages   Message[]
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, updatedAt])
+  @@index([customerId])
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  businessId     String
+  business       Business         @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  conversationId String?
+  conversation   Conversation?    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  customerId     String?
+  customer       Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  channel        MessageChannel
+  direction      MessageDirection
+  subject        String?
+  body           String
+  providerId     String?
+  sentAt         DateTime?
+  reminders      Reminder[]
+  createdAt      DateTime         @default(now())
+
+  @@index([businessId, createdAt])
+  @@index([businessId, channel])
+  @@index([conversationId])
+  @@index([customerId])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  actor      String
+  action     String
+  entity     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([businessId])
+  @@index([businessId, createdAt])
+}
+
+model Reminder {
+  id          String         @id @default(cuid())
+  businessId  String
+  business    Business       @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  status      ReminderStatus @default(PENDING)
+  dueAt       DateTime
+  customerId  String?
+  customer    Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  inquiryId   String?
+  inquiry     Inquiry?       @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+  messageId   String?
+  message     Message?       @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  createdById String?
+  createdBy   User?          @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  completedAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, dueAt])
+  @@index([customerId])
+  @@index([inquiryId])
+  @@index([messageId])
+  @@index([createdById])
+}
+
+model MessageTemplate {
+  id           String              @id @default(cuid())
+  businessId   String
+  business     Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name         String
+  type         MessageTemplateType
+  businessType BusinessTypeCode
+  subject      String
+  body         String
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([businessId, type])
+  @@index([businessId, businessType])
+}
+
+model StripeWebhookEvent {
+  id            String   @id @default(cuid())
+  stripeEventId String   @unique
+  type          String
+  businessId    String?
+  processedAt   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  @@index([businessId])
+  @@index([type])
+}
+
+model PilotFeedback {
+  id           String   @id @default(cuid())
+  businessId   String
+  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  submittedById String?
+  submittedBy   User?   @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  type         String
+  area         String
+  message      String
+  priority     String
+  status       String   @default("NEW")
+  adminNotes   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, createdAt])
+  @@index([submittedById])
+}
