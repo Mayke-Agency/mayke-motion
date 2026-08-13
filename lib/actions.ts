@@ -2313,6 +2313,10 @@ const demoCleanupSchema = z.object({
   businessId: z.string().min(1),
   confirm: z.string()
 });
+const deleteOrganizationSchema = z.object({
+  businessId: z.string().min(1),
+  confirmName: z.string().min(1)
+});
 const feedbackTypeValues = ["BUG", "CONFUSING", "FEATURE_REQUEST", "GENERAL"] as const;
 const feedbackPriorityValues = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
 const feedbackStatusValues = ["NEW", "REVIEWING", "PLANNED", "RESOLVED", "CLOSED"] as const;
@@ -2541,6 +2545,37 @@ export async function updateAdminClientAction(first: FormData | ActionResult | n
   revalidatePath("/admin");
   revalidatePath(`/admin/clients/${business.id}`);
   return { success: "Client settings updated." } satisfies ActionResult;
+}
+
+export async function deleteOrganizationAction(first: FormData | ActionResult | null | undefined, second?: FormData) {
+  await requireAdmin();
+  const formData = resolveFormData(first, second);
+  const parsed = deleteOrganizationSchema.safeParse({
+    businessId: formString(formData, "businessId"),
+    confirmName: formString(formData, "confirmName")
+  });
+
+  if (!parsed.success) {
+    return { error: "Enter the exact organization name to permanently delete it." } satisfies ActionResult;
+  }
+
+  const business = await prisma.business.findUnique({
+    where: { id: parsed.data.businessId },
+    select: { id: true, name: true }
+  });
+
+  if (!business) {
+    return { error: "Organization was not found." } satisfies ActionResult;
+  }
+
+  if (parsed.data.confirmName !== business.name) {
+    return { error: "The organization name does not match. Nothing was deleted." } satisfies ActionResult;
+  }
+
+  await prisma.business.delete({ where: { id: business.id } });
+
+  revalidatePath("/admin");
+  redirect("/admin");
 }
 
 export async function updateLaunchReadinessAction(first: FormData | ActionResult | null | undefined, second?: FormData) {

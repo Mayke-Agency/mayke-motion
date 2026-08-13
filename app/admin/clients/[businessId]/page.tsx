@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ContactImportForm } from "@/components/forms/ContactImportForm";
 import { StatefulForm } from "@/components/forms/StatefulForm";
 import { SubmitButton } from "@/components/ui/SubmitButton";
-import { deactivateStaffUserAction, deleteMessageTemplateAction, removeDemoDataAction, revokeInviteAction, updateAdminClientAction, updateLaunchReadinessAction, upsertMessageTemplateAction } from "@/lib/actions";
+import { deactivateStaffUserAction, deleteMessageTemplateAction, deleteOrganizationAction, removeDemoDataAction, revokeInviteAction, updateAdminClientAction, updateLaunchReadinessAction, upsertMessageTemplateAction } from "@/lib/actions";
 import { requireAdmin } from "@/lib/auth";
 import { getAdminClient } from "@/lib/dashboard-data";
 
@@ -120,6 +120,31 @@ export default async function AdminClientPage({
                 <textarea className="textarea" id="launchNotes" name="launchNotes" defaultValue={launch.notes} placeholder="Record blockers, final QA notes, or launch dependencies." />
               </div>
               <SubmitButton>Save launch readiness</SubmitButton>
+            </StatefulForm>
+          </div>
+        </section>
+
+        <section className="panel danger-zone" style={{ gridColumn: "span 3" }}>
+          <div className="panel-header">
+            <div>
+              <h2>Delete organization</h2>
+              <p>Permanently remove this client workspace, its users, and all tenant-scoped records. This cannot be undone.</p>
+            </div>
+            <Trash2 size={20} />
+          </div>
+          <div className="panel-body">
+            <StatefulForm action={deleteOrganizationAction} className="detail-stack">
+              <input type="hidden" name="businessId" value={business.id} />
+              <div className="field">
+                <label htmlFor="confirmOrganizationDeletion">Type {business.name} to confirm</label>
+                <input className="input" id="confirmOrganizationDeletion" name="confirmName" autoComplete="off" placeholder={business.name} required />
+              </div>
+              <div className="button-row" style={{ justifyContent: "flex-start" }}>
+                <SubmitButton className="button danger">
+                  <Trash2 size={16} />
+                  Delete organization permanently
+                </SubmitButton>
+              </div>
             </StatefulForm>
           </div>
         </section>

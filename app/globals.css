@@ -313,6 +313,15 @@ button:disabled {
   background: #fffaf2;
 }
 
+.button.danger {
+  border-color: var(--danger);
+  background: var(--danger);
+}
+
+.button.danger:hover {
+  background: var(--oxblood-800);
+}
+
 .button.ghost {
   border-color: transparent;
   background: transparent;
@@ -689,6 +698,15 @@ button:disabled {
 
 .panel:hover {
   border-color: rgba(36, 25, 21, 0.22);
+}
+
+.danger-zone {
+  border-color: rgba(143, 47, 53, 0.34);
+}
+
+.danger-zone .panel-header h2,
+.danger-zone .panel-header > svg {
+  color: var(--danger);
 }
 
 .panel-header {
