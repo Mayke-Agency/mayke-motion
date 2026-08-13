@@ -126,8 +126,8 @@
 }
 
 .theme-sports-club {
-  --font-sans: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Avenir Next", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Avenir Next", "Helvetica Neue", Arial, ui-sans-serif, system-ui, sans-serif;
   --background: #080b10;
   --foreground: #f4f8fc;
   --muted: #a9b8c8;
