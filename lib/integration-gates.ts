@@ -12,7 +12,8 @@ export function isStripePaymentsReady(business: IntegrationBusiness) {
 }
 
 export function isEmailSendingReady(business: IntegrationBusiness) {
-  return Boolean(business.emailSenderEmail && business.emailDomain && business.emailVerificationStatus !== "not_configured");
+  const readyStatuses = new Set(["verified", "connected", "complete"]);
+  return Boolean(business.emailSenderEmail && business.emailDomain && readyStatuses.has(business.emailVerificationStatus ?? ""));
 }
 
 export const stripeSetupMessage = "Stripe setup required before payment collection can be used.";

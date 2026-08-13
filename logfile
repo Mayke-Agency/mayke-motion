@@ -284,3 +284,52 @@
 2026-05-26 23:31:08.869 EDT [92126] LOG:  checkpoint complete: wrote 50 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.987 s, sync=0.009 s, total=5.000 s; sync files=16, longest=0.005 s, average=0.001 s; distance=211 kB, estimate=2368 kB; lsn=0/1BC79E68, redo lsn=0/1BC79DF8
 2026-05-26 23:36:03.862 EDT [92126] LOG:  checkpoint starting: time
 2026-05-26 23:36:04.581 EDT [92126] LOG:  checkpoint complete: wrote 8 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.711 s, sync=0.003 s, total=0.720 s; sync files=7, longest=0.002 s, average=0.001 s; distance=39 kB, estimate=2135 kB; lsn=0/1BC83AE8, redo lsn=0/1BC83AB0
+2026-05-27 13:21:09.241 EDT [18644] LOG:  could not receive data from client: Connection reset by peer
+2026-05-27 14:32:36.427 EDT [21073] FATAL:  pre-existing shared memory block (key 29489714, ID 458755) is still in use
+2026-05-27 14:32:36.427 EDT [21073] HINT:  Terminate any old server processes associated with data directory "/Users/alancampos/Documents/mayke-motion/postgres-data".
+2026-05-27 14:33:18.685 EDT [21351] FATAL:  lock file "postmaster.pid" already exists
+2026-05-27 14:33:18.685 EDT [21351] HINT:  Is another postmaster (PID 92125) running in data directory "/Users/alancampos/Documents/mayke-motion/postgres-data"?
+2026-05-27 15:00:02.900 EDT [92125] LOG:  received fast shutdown request
+2026-05-27 15:00:02.904 EDT [92125] LOG:  aborting any active transactions
+2026-05-27 15:00:02.905 EDT [100] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99991] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99995] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.906 EDT [99993] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99992] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99996] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.906 EDT [99997] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99998] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.905 EDT [99994] FATAL:  terminating connection due to administrator command
+2026-05-27 15:00:02.913 EDT [92125] LOG:  background worker "logical replication launcher" (PID 92131) exited with exit code 1
+2026-05-27 15:00:02.914 EDT [92126] LOG:  shutting down
+2026-05-27 15:00:02.915 EDT [92126] LOG:  checkpoint starting: shutdown immediate
+2026-05-27 15:00:02.917 EDT [92126] LOG:  checkpoint complete: wrote 0 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.001 s, sync=0.001 s, total=0.004 s; sync files=0, longest=0.000 s, average=0.000 s; distance=0 kB, estimate=1921 kB; lsn=0/1BC83B98, redo lsn=0/1BC83B98
+2026-05-27 15:00:02.934 EDT [92125] LOG:  database system is shut down
+2026-05-27 15:00:52.036 EDT [24537] LOG:  starting PostgreSQL 16.13 (Homebrew) on aarch64-apple-darwin24.6.0, compiled by Apple clang version 17.0.0 (clang-1700.6.3.2), 64-bit
+2026-05-27 15:00:52.038 EDT [24537] LOG:  could not bind IPv6 address "::1": Address already in use
+2026-05-27 15:00:52.038 EDT [24537] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2026-05-27 15:00:52.038 EDT [24537] LOG:  could not bind IPv4 address "127.0.0.1": Address already in use
+2026-05-27 15:00:52.038 EDT [24537] HINT:  Is another postmaster already running on port 5432? If not, wait a few seconds and retry.
+2026-05-27 15:00:52.038 EDT [24537] WARNING:  could not create listen socket for "localhost"
+2026-05-27 15:00:52.038 EDT [24537] FATAL:  could not create any TCP/IP sockets
+2026-05-27 15:00:52.038 EDT [24537] LOG:  database system is shut down
+2026-05-27 15:03:02.331 EDT [24919] LOG:  starting PostgreSQL 16.13 (Homebrew) on aarch64-apple-darwin24.6.0, compiled by Apple clang version 17.0.0 (clang-1700.6.3.2), 64-bit
+2026-05-27 15:03:02.333 EDT [24919] LOG:  listening on IPv6 address "::1", port 55432
+2026-05-27 15:03:02.333 EDT [24919] LOG:  listening on IPv4 address "127.0.0.1", port 55432
+2026-05-27 15:03:02.333 EDT [24919] LOG:  listening on Unix socket "/tmp/.s.PGSQL.55432"
+2026-05-27 15:03:02.344 EDT [24922] LOG:  database system was shut down at 2026-05-27 15:00:02 EDT
+2026-05-27 15:03:02.357 EDT [24919] LOG:  database system is ready to accept connections
+2026-05-27 15:08:02.340 EDT [24920] LOG:  checkpoint starting: time
+2026-05-27 15:08:02.351 EDT [24920] LOG:  checkpoint complete: wrote 2 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.003 s, sync=0.001 s, total=0.012 s; sync files=3, longest=0.001 s, average=0.001 s; distance=0 kB, estimate=0 kB; lsn=0/1BC83C80, redo lsn=0/1BC83C48
+2026-05-27 20:18:02.436 EDT [24920] LOG:  checkpoint starting: time
+2026-05-27 20:18:04.083 EDT [24920] LOG:  checkpoint complete: wrote 17 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=1.637 s, sync=0.003 s, total=1.648 s; sync files=17, longest=0.001 s, average=0.001 s; distance=39 kB, estimate=39 kB; lsn=0/1BC8D8D8, redo lsn=0/1BC8D8A0
+2026-05-28 10:19:46.945 EDT [24920] LOG:  checkpoint starting: time
+2026-05-28 10:19:51.230 EDT [24920] LOG:  checkpoint complete: wrote 43 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=4.278 s, sync=0.004 s, total=4.286 s; sync files=43, longest=0.001 s, average=0.001 s; distance=87 kB, estimate=87 kB; lsn=0/1BCA36F8, redo lsn=0/1BCA36C0
+2026-05-28 10:24:46.233 EDT [24920] LOG:  checkpoint starting: time
+2026-05-28 10:24:46.448 EDT [24920] LOG:  checkpoint complete: wrote 3 buffers (0.0%); 0 WAL file(s) added, 0 removed, 0 recycled; write=0.207 s, sync=0.002 s, total=0.215 s; sync files=3, longest=0.001 s, average=0.001 s; distance=5 kB, estimate=79 kB; lsn=0/1BCA4B40, redo lsn=0/1BCA4B08
+2026-05-28 10:48:29.888 EDT [48003] FATAL:  lock file "postmaster.pid" already exists
+2026-05-28 10:48:29.888 EDT [48003] HINT:  Is another postmaster (PID 24919) running in data directory "/Users/alancampos/Documents/mayke-motion/postgres-data"?
+2026-05-28 10:54:46.461 EDT [24920] LOG:  checkpoint starting: time
+2026-05-28 10:54:48.711 EDT [24920] LOG:  checkpoint complete: wrote 23 buffers (0.1%); 0 WAL file(s) added, 0 removed, 0 recycled; write=2.238 s, sync=0.008 s, total=2.251 s; sync files=23, longest=0.001 s, average=0.001 s; distance=73 kB, estimate=78 kB; lsn=0/1BCB6FE0, redo lsn=0/1BCB6FA8
+2026-05-28 10:59:46.714 EDT [24920] LOG:  checkpoint starting: time
+2026-05-28 10:59:52.141 EDT [24920] LOG:  checkpoint complete: wrote 54 buffers (0.3%); 0 WAL file(s) added, 0 removed, 0 recycled; write=5.404 s, sync=0.020 s, total=5.428 s; sync files=54, longest=0.001 s, average=0.001 s; distance=79 kB, estimate=79 kB; lsn=0/1BCCADA8, redo lsn=0/1BCCAD70

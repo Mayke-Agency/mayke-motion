@@ -7,13 +7,14 @@ type StatefulFormProps = {
   action: (previousState: ActionResult | null | undefined, formData: FormData) => Promise<ActionResult | undefined>;
   children: React.ReactNode;
   className?: string;
+  style?: React.CSSProperties;
 };
 
-export function StatefulForm({ action, children, className = "form-stack" }: StatefulFormProps) {
+export function StatefulForm({ action, children, className = "form-stack", style }: StatefulFormProps) {
   const [state, formAction] = useActionState(action, null);
 
   return (
-    <form action={formAction} className={className}>
+    <form action={formAction} className={className} style={style}>
       {state?.error ? <div className="error">{state.error}</div> : null}
       {state?.success ? <div className="success">{state.success}</div> : null}
       {children}

@@ -101,7 +101,7 @@ export async function logoutAction() {
 
 const onboardingSchema = z.object({
   businessName: z.string().min(2),
-  businessType: z.enum(["RESTAURANT", "RETAIL", "DANCE_STUDIO"]),
+  businessType: z.enum(["RESTAURANT", "RETAIL", "DANCE_STUDIO", "SPORTS_CLUB"]),
   website: z.string().url().optional().or(z.literal("")),
   contactEmail: z.string().email(),
   phone: z.string().min(7).optional().or(z.literal("")),
@@ -149,13 +149,17 @@ export async function completeOnboardingAction(first: FormData | ActionResult | 
           ? "Restaurant"
           : parsed.data.businessType === "DANCE_STUDIO"
             ? "Dance Studio / Education"
-            : "Retail / Ecommerce",
+            : parsed.data.businessType === "SPORTS_CLUB"
+              ? "Sports Club"
+              : "Retail / Ecommerce",
       description:
         parsed.data.businessType === "RESTAURANT"
           ? "Restaurants, hospitality groups, caterers, and experience-led food brands."
           : parsed.data.businessType === "DANCE_STUDIO"
             ? "Dance studios, education programs, classes, events, and parent communication."
-            : "Retail, ecommerce, boutique, and product-led businesses."
+            : parsed.data.businessType === "SPORTS_CLUB"
+              ? "Club sports organizations managing players, families, teams, dues, schedules, and recruiting."
+              : "Retail, ecommerce, boutique, and product-led businesses."
     }
   });
 
@@ -1907,6 +1911,7 @@ const moduleLabels: Record<ModuleKey, { label: string; description: string }> = 
   MENU: { label: "Menu", description: "Restaurant menu management." },
   RESERVATIONS: { label: "Reservations", description: "Hospitality reservation workflows." },
   EDUCATION: { label: "Education", description: "Studio events, announcements, and programs." },
+  SPORTS: { label: "Club operations", description: "Players, teams, forms, schedules, payments, recruiting, and sponsors." },
   INTEGRATIONS: { label: "Integrations", description: "Connected platform status." },
   BILLING: { label: "Billing", description: "Subscription and plan controls." }
 };
@@ -1916,7 +1921,7 @@ const templateSchema = z.object({
   businessId: z.string().optional(),
   name: z.string().min(2),
   type: z.enum(["FOLLOW_UP", "CAMPAIGN", "ANNOUNCEMENT"]),
-  businessType: z.enum(["RESTAURANT", "RETAIL", "DANCE_STUDIO"]),
+  businessType: z.enum(["RESTAURANT", "RETAIL", "DANCE_STUDIO", "SPORTS_CLUB"]),
   subject: z.string().min(3),
   body: z.string().min(8)
 });

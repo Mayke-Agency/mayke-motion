@@ -24,6 +24,7 @@ export default async function PublicRegistrationPage({
   const classes = form.business.studioClasses;
   const requiresPayment = Number(form.fee) > 0;
   const stripeReady = isStripePaymentsReady(form.business);
+  const canCollectPayment = requiresPayment && stripeReady;
 
   return (
     <main className="auth-shell" style={{ gridTemplateColumns: "minmax(320px, 0.7fr) minmax(0, 1.3fr)" }}>
@@ -43,7 +44,7 @@ export default async function PublicRegistrationPage({
       <section className="auth-panel" style={{ overflow: "auto" }}>
         <div className="login-card" style={{ maxWidth: 900 }}>
           {query.payment === "canceled" ? <div className="error">Payment was canceled. Please submit again when ready.</div> : null}
-          {requiresPayment && !stripeReady ? <div className="error">{stripeSetupMessage} Please contact {form.business.name} to complete registration.</div> : null}
+          {requiresPayment && !stripeReady ? <div className="error">{stripeSetupMessage} Submit now and {form.business.name} will follow up about payment.</div> : null}
           <StatefulForm action={submitRegistrationAction} className="form-stack">
             <input type="hidden" name="formId" value={form.id} />
             <div className="form-grid">
@@ -108,7 +109,7 @@ export default async function PublicRegistrationPage({
                 <textarea className="textarea" id="notes" name="notes" />
               </div>
             </div>
-            <SubmitButton disabled={requiresPayment && !stripeReady}>{requiresPayment ? `Continue to payment (${formatCurrency(form.fee)})` : "Submit registration"}</SubmitButton>
+            <SubmitButton>{canCollectPayment ? `Continue to payment (${formatCurrency(form.fee)})` : requiresPayment ? `Submit registration (${formatCurrency(form.fee)} due)` : "Submit registration"}</SubmitButton>
           </StatefulForm>
         </div>
       </section>

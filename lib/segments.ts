@@ -21,6 +21,11 @@ const typeSegments: Record<BusinessTypeCode, SegmentOption[]> = {
   ],
   RETAIL: [{ key: "product-interest", label: "Product interest", description: "Contacts showing product, bundle, or wholesale intent." }],
   DANCE_STUDIO: [{ key: "event-recital-interest", label: "Event/recital interest", description: "Families interested in recitals, classes, events, or trials." }]
+  ,SPORTS_CLUB: [
+    { key: "tryout-interest", label: "Tryout interest", description: "Families and players evaluating club tryouts or placement." },
+    { key: "active-players", label: "Active players", description: "Current club families and active roster contacts." },
+    { key: "payment-follow-up", label: "Payment follow-up", description: "Families needing a dues or invoice reminder." }
+  ]
 };
 
 function normalizedTags(customer: SegmentCustomer) {
@@ -66,6 +71,10 @@ export function customerMatchesSegment(customer: SegmentCustomer, key = "all") {
   if (key === "product-interest") {
     return hasAny(customer, ["product", "variety", "heat", "gift", "recipe", "wholesale", "mago", "early access"]);
   }
+
+  if (key === "tryout-interest") return hasAny(customer, ["tryout", "prospect", "baseball", "club"]);
+  if (key === "active-players") return hasAny(customer, ["player", "roster", "active", "team"]);
+  if (key === "payment-follow-up") return hasAny(customer, ["payment", "invoice", "past due", "dues"]);
 
   return false;
 }

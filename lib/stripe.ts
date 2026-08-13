@@ -203,3 +203,32 @@ export async function createRegistrationCheckoutSession(input: {
     })
   );
 }
+
+export async function createSportsInvoiceCheckoutSession(input: {
+  businessId: string;
+  invoiceId: string;
+  clubSlug: string;
+  amountCents: number;
+  title: string;
+  email: string;
+}) {
+  if (input.amountCents <= 0) throw new Error("Invoice amount must be greater than $0 to start checkout.");
+
+  return stripeRequest<StripeSession>(
+    "checkout/sessions",
+    encodeForm({
+      mode: "payment",
+      customer_email: input.email,
+      "line_items[0][quantity]": 1,
+      "line_items[0][price_data][currency]": "usd",
+      "line_items[0][price_data][unit_amount]": input.amountCents,
+      "line_items[0][price_data][product_data][name]": input.title,
+      success_url: `${appUrl()}/club/${input.clubSlug}?payment=success`,
+      cancel_url: `${appUrl()}/club/${input.clubSlug}?payment=canceled`,
+      "metadata[businessId]": input.businessId,
+      "metadata[sportsInvoiceId]": input.invoiceId,
+      "payment_intent_data[metadata][businessId]": input.businessId,
+      "payment_intent_data[metadata][sportsInvoiceId]": input.invoiceId
+    })
+  );
+}

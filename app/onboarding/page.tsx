@@ -62,6 +62,7 @@ export default async function OnboardingPage() {
                     <option value="RESTAURANT">Restaurant</option>
                     <option value="RETAIL">Retail / ecommerce</option>
                     <option value="DANCE_STUDIO">Dance studio / education</option>
+                    <option value="SPORTS_CLUB">Sports club</option>
                   </select>
                 </div>
                 <div className="field">

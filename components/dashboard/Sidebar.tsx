@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import type { BusinessTypeCode, ModuleKey, UserRole } from "@prisma/client";
-import { baseNavigation, catalogNavigation, operationsNavigation, studioNavigation } from "@/lib/business-config";
+import { baseNavigation, catalogNavigation, operationsNavigation, sportsNavigation, studioNavigation } from "@/lib/business-config";
 import { initials } from "@/lib/format";
 import { logoutAction } from "@/lib/actions";
 import { navModuleForHref } from "@/lib/module-access";
@@ -32,7 +32,14 @@ export function Sidebar({ user, business, enabledModules }: SidebarProps) {
   const operations = operationsNavigation(business.businessType.code);
   const enabled = new Set(enabledModules);
   const hiddenForDance = new Set(["/dashboard/sales", "/dashboard/marketing", "/dashboard/analytics", "/dashboard/integrations", "/dashboard/billing"]);
-  const navigation = [
+  const sportsItems = [
+    baseNavigation[0],
+    ...sportsNavigation(business.businessType.code).slice(0, 6),
+    baseNavigation[3],
+    ...sportsNavigation(business.businessType.code).slice(6),
+    baseNavigation.at(-1)!
+  ];
+  const defaultNavigation = [
     baseNavigation[0],
     baseNavigation[1],
     baseNavigation[2],
@@ -41,7 +48,8 @@ export function Sidebar({ user, business, enabledModules }: SidebarProps) {
     catalogNavigation(business.businessType.code),
     ...studioNavigation(business.businessType.code),
     ...baseNavigation.slice(4)
-  ].filter((item) => {
+  ];
+  const navigation = (business.businessType.code === "SPORTS_CLUB" ? sportsItems : defaultNavigation).filter((item) => {
     if (business.businessType.code === "DANCE_STUDIO" && hiddenForDance.has(item.href)) return false;
     const module = navModuleForHref(item.href);
     return !module || enabled.has(module);

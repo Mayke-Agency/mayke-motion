@@ -1,0 +1,12 @@
+"use client";
+
+import { useActionState, useEffect } from "react";
+import { submitSportsFormAction } from "@/lib/sports-actions";
+
+type Result = { error?: string; success?: string; checkoutUrl?: string };
+
+export function PublicSportsForm({ formId, fee }: { formId: string; fee: number }) {
+  const [state, action] = useActionState<Result | null, FormData>(submitSportsFormAction, null);
+  useEffect(() => { if (state?.checkoutUrl) window.location.assign(state.checkoutUrl); }, [state?.checkoutUrl]);
+  return <form action={action} className="form-stack panel-body"><input type="hidden" name="formId" value={formId} />{state?.error ? <div className="error">{state.error}</div> : null}{state?.success ? <div className="success">{state.checkoutUrl ? "Redirecting to Stripe test checkout..." : state.success}</div> : null}<div className="form-grid"><div className="field"><label htmlFor="parentName">Parent / guardian name</label><input className="input" id="parentName" name="parentName" required /></div><div className="field"><label htmlFor="parentEmail">Parent / guardian email</label><input className="input" id="parentEmail" name="parentEmail" type="email" required /></div></div><div className="form-grid"><div className="field"><label htmlFor="parentPhone">Phone</label><input className="input" id="parentPhone" name="parentPhone" /></div><div className="field"><label htmlFor="familyName">Family last name</label><input className="input" id="familyName" name="familyName" required /></div></div><div className="form-grid"><div className="field"><label htmlFor="playerFirstName">Player first name</label><input className="input" id="playerFirstName" name="playerFirstName" required /></div><div className="field"><label htmlFor="playerLastName">Player last name</label><input className="input" id="playerLastName" name="playerLastName" required /></div></div><div className="form-grid"><div className="field"><label htmlFor="graduationYear">Graduation year</label><input className="input" id="graduationYear" name="graduationYear" type="number" min="2024" max="2045" /></div><div className="field"><label htmlFor="positions">Position(s)</label><input className="input" id="positions" name="positions" placeholder="Pitcher, Shortstop" /></div></div><div className="field"><label htmlFor="notes">Notes / questions</label><textarea className="textarea" id="notes" name="notes" /></div><button className="button" type="submit">{fee > 0 ? `Submit and continue to payment ($${fee.toFixed(2)})` : "Submit registration"}</button></form>;
+}

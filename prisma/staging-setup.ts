@@ -13,6 +13,7 @@ const moduleLabels: Record<ModuleKey, { label: string; description: string }> = 
   MENU: { label: "Menu", description: "Restaurant menu management." },
   RESERVATIONS: { label: "Reservations", description: "Hospitality reservation workflows." },
   EDUCATION: { label: "Education", description: "Studio events, announcements, and programs." },
+  SPORTS: { label: "Club operations", description: "Players, teams, forms, schedules, payments, recruiting, and sponsors." },
   INTEGRATIONS: { label: "Integrations", description: "Connected platform status." },
   BILLING: { label: "Billing", description: "Subscription and plan controls." }
 };
@@ -20,7 +21,8 @@ const moduleLabels: Record<ModuleKey, { label: string; description: string }> = 
 const businessTypeNames: Record<BusinessTypeCode, string> = {
   RESTAURANT: "Restaurant",
   RETAIL: "Retail / Ecommerce",
-  DANCE_STUDIO: "Dance Studio / Education"
+  DANCE_STUDIO: "Dance Studio / Education",
+  SPORTS_CLUB: "Sports Club"
 };
 
 function requireEnv(key: string) {
@@ -41,8 +43,8 @@ function slugify(value: string) {
 
 function businessTypeCode() {
   const value = (process.env.STAGING_CLIENT_TYPE ?? "RETAIL").trim();
-  if (!["RESTAURANT", "RETAIL", "DANCE_STUDIO"].includes(value)) {
-    throw new Error("STAGING_CLIENT_TYPE must be RESTAURANT, RETAIL, or DANCE_STUDIO.");
+  if (!["RESTAURANT", "RETAIL", "DANCE_STUDIO", "SPORTS_CLUB"].includes(value)) {
+    throw new Error("STAGING_CLIENT_TYPE must be RESTAURANT, RETAIL, DANCE_STUDIO, or SPORTS_CLUB.");
   }
   return value as BusinessTypeCode;
 }
@@ -50,6 +52,7 @@ function businessTypeCode() {
 function enabledModulesFor(type: BusinessTypeCode): ModuleKey[] {
   if (type === "RESTAURANT") return ["CRM", "INQUIRIES", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "MENU", "RESERVATIONS", "INTEGRATIONS", "BILLING"];
   if (type === "DANCE_STUDIO") return ["CRM", "CAMPAIGNS", "COMMUNICATIONS", "EDUCATION", "INTEGRATIONS", "BILLING"];
+  if (type === "SPORTS_CLUB") return ["CRM", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "SPORTS", "INTEGRATIONS", "BILLING"];
   return ["CRM", "INQUIRIES", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "PRODUCTS", "INTEGRATIONS", "BILLING"];
 }
 

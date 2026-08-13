@@ -10,6 +10,7 @@ export const allModuleKeys: ModuleKey[] = [
   "MENU",
   "RESERVATIONS",
   "EDUCATION",
+  "SPORTS",
   "INTEGRATIONS",
   "BILLING"
 ];
@@ -33,7 +34,20 @@ const routeModuleMap: { prefix: string; module: ModuleKey }[] = [
   { prefix: "/dashboard/payments", module: "EDUCATION" },
   { prefix: "/dashboard/registrations", module: "EDUCATION" },
   { prefix: "/dashboard/events", module: "EDUCATION" },
-  { prefix: "/dashboard/announcements", module: "EDUCATION" }
+  { prefix: "/dashboard/announcements", module: "EDUCATION" },
+  { prefix: "/dashboard/players", module: "SPORTS" },
+  { prefix: "/dashboard/club-families", module: "SPORTS" },
+  { prefix: "/dashboard/coaches", module: "SPORTS" },
+  { prefix: "/dashboard/teams", module: "SPORTS" },
+  { prefix: "/dashboard/tryouts", module: "SPORTS" },
+  { prefix: "/dashboard/schedule", module: "SPORTS" },
+  { prefix: "/dashboard/club-payments", module: "SPORTS" },
+  { prefix: "/dashboard/forms", module: "SPORTS" },
+  { prefix: "/dashboard/documents", module: "SPORTS" },
+  { prefix: "/dashboard/recruiting", module: "SPORTS" },
+  { prefix: "/dashboard/sponsors", module: "SPORTS" },
+  { prefix: "/dashboard/website", module: "SPORTS" },
+  { prefix: "/dashboard/reports", module: "SPORTS" }
 ];
 
 export function moduleForPath(pathname: string) {

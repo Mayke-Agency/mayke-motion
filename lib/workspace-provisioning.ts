@@ -13,6 +13,7 @@ const moduleLabels: Record<ModuleKey, { label: string; description: string }> = 
   MENU: { label: "Menu", description: "Restaurant menu management." },
   RESERVATIONS: { label: "Reservations", description: "Hospitality reservation workflows." },
   EDUCATION: { label: "Education", description: "Studio registrations, families, classes, payments, attendance, and events." },
+  SPORTS: { label: "Club operations", description: "Players, families, teams, schedules, forms, payments, recruiting, and sponsors." },
   INTEGRATIONS: { label: "Integrations", description: "Connected platform status." },
   BILLING: { label: "Billing", description: "Subscription and plan controls." }
 };
@@ -21,12 +22,14 @@ const moduleDefaults: Record<BusinessTypeCode, ModuleKey[]> = {
   RETAIL: ["CRM", "PRODUCTS", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "INTEGRATIONS"],
   RESTAURANT: ["RESERVATIONS", "INQUIRIES", "CRM", "CAMPAIGNS", "COMMUNICATIONS", "MENU", "INTEGRATIONS"],
   DANCE_STUDIO: ["EDUCATION", "COMMUNICATIONS", "CAMPAIGNS", "CRM", "INTEGRATIONS"]
+  ,SPORTS_CLUB: ["SPORTS", "CRM", "COMMUNICATIONS", "CAMPAIGNS", "ANALYTICS", "INTEGRATIONS"]
 };
 
 const dashboardLayouts: Record<BusinessTypeCode, string[]> = {
   RETAIL: ["setup", "priority-alerts", "revenue", "orders", "top-products", "campaigns", "activity"],
   RESTAURANT: ["setup", "priority-alerts", "reservations", "catering", "crm", "campaigns", "activity"],
   DANCE_STUDIO: ["setup", "registrations", "families", "classes", "payments", "communication", "events"]
+  ,SPORTS_CLUB: ["setup", "players", "teams", "tryouts", "payments", "schedule", "communications"]
 };
 
 const starterStatuses: Record<BusinessTypeCode, Record<string, string[]>> = {
@@ -43,6 +46,12 @@ const starterStatuses: Record<BusinessTypeCode, Record<string, string[]>> = {
     registrations: ["NEW", "REVIEWED", "CONTACTED", "ENROLLED", "NOT_A_FIT"],
     payments: ["UNPAID", "PENDING", "PAID", "FAILED", "REFUNDED"],
     enrollments: ["ACTIVE", "WAITLISTED", "DROPPED", "COMPLETED"]
+  },
+  SPORTS_CLUB: {
+    players: ["PROSPECT", "ACTIVE", "INACTIVE", "GRADUATED"],
+    rosters: ["PENDING", "ACTIVE", "WAITLISTED", "FORMER"],
+    invoices: ["DRAFT", "OPEN", "PENDING", "PAID", "PAST_DUE", "VOID"],
+    forms: ["NEW", "REVIEWED", "APPROVED", "DECLINED"]
   }
 };
 
@@ -50,12 +59,14 @@ const analyticsCards: Record<BusinessTypeCode, string[]> = {
   RETAIL: ["Revenue", "Orders", "Customer growth", "Top products", "Campaign activity"],
   RESTAURANT: ["Reservations", "Catering inquiries", "Guest growth", "Revenue", "Campaign activity"],
   DANCE_STUDIO: ["New registrations", "Active students", "Paid vs unpaid", "Attendance", "Upcoming events"]
+  ,SPORTS_CLUB: ["Active players", "Tryout registrations", "Outstanding balances", "Team sizes", "Upcoming schedule"]
 };
 
 const communicationCategories: Record<BusinessTypeCode, string[]> = {
   RETAIL: ["Product question", "Order follow-up", "Wholesale", "Campaign reply"],
   RESTAURANT: ["Reservation", "Catering", "Private event", "Guest follow-up"],
   DANCE_STUDIO: ["Registration", "Family follow-up", "Class update", "Payment", "Event reminder"]
+  ,SPORTS_CLUB: ["Tryout", "Team update", "Practice reminder", "Tournament update", "Payment reminder", "Emergency"]
 };
 
 const starterTemplates: Record<BusinessTypeCode, { name: string; type: "FOLLOW_UP" | "CAMPAIGN" | "ANNOUNCEMENT"; subject: string; body: string }[]> = {
@@ -70,6 +81,11 @@ const starterTemplates: Record<BusinessTypeCode, { name: string; type: "FOLLOW_U
   DANCE_STUDIO: [
     { name: "Registration next steps", type: "FOLLOW_UP", subject: "Next steps from {{business}}", body: "Hi {{firstName}},\n\nThank you for submitting a registration. Our team will review details and follow up with placement guidance.\n\nWarmly,\n{{business}}" },
     { name: "Studio announcement", type: "ANNOUNCEMENT", subject: "An update from {{business}}", body: "A clear family-facing announcement for classes, recitals, reminders, and studio updates." }
+  ],
+  SPORTS_CLUB: [
+    { name: "Tryout confirmation", type: "FOLLOW_UP", subject: "Your tryout details from {{business}}", body: "Hi {{firstName}},\n\nThank you for your interest in {{business}}. We will follow up with your tryout details and next steps.\n\nBest,\n{{business}}" },
+    { name: "Team update", type: "ANNOUNCEMENT", subject: "A club update from {{business}}", body: "A clear club-facing announcement for practices, tournament updates, team assignments, and family reminders." },
+    { name: "Dues reminder", type: "FOLLOW_UP", subject: "A payment reminder from {{business}}", body: "Hi {{firstName}},\n\nThis is a friendly reminder that your club balance is ready for review. Please contact us if you need payment-plan support.\n\nThank you,\n{{business}}" }
   ]
 };
 

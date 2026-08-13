@@ -14,9 +14,19 @@ import {
   Megaphone,
   MessageSquareText,
   ClipboardPenLine,
+  ClipboardSignature,
   Settings,
+  ShieldCheck,
+  Trophy,
   TextCursorInput,
-  Users
+  Users,
+  UserRound,
+  FileText,
+  CalendarClock,
+  Landmark,
+  MonitorCog,
+  Handshake,
+  LineChart
 } from "lucide-react";
 
 export const businessTypeCopy: Record<
@@ -61,6 +71,16 @@ export const businessTypeCopy: Record<
     salesLabel: "Registrations",
     heroLine: "Families, classes, events, and communication in rhythm.",
     operatingFocus: "student inquiries, announcements, registration reminders, and event communication"
+  },
+  SPORTS_CLUB: {
+    label: "Sports Club",
+    noun: "families",
+    revenueLabel: "Club revenue",
+    primaryCatalogLabel: "Teams",
+    inquiryLabel: "Tryouts and player inquiries",
+    salesLabel: "Invoices",
+    heroLine: "Players, families, teams, and club operations in one place.",
+    operatingFocus: "player development, team operations, family communication, payments, and recruiting"
   }
 };
 
@@ -89,6 +109,26 @@ export function catalogNavigation(type: BusinessTypeCode) {
   }
 
   return { href: "/dashboard/products", label: "Products", icon: Boxes };
+}
+
+export function sportsNavigation(type: BusinessTypeCode) {
+  if (type !== "SPORTS_CLUB") return [];
+
+  return [
+    { href: "/dashboard/players", label: "Players", icon: UserRound },
+    { href: "/dashboard/club-families", label: "Families", icon: Users },
+    { href: "/dashboard/coaches", label: "Coaches", icon: ShieldCheck },
+    { href: "/dashboard/teams", label: "Teams", icon: Trophy },
+    { href: "/dashboard/tryouts", label: "Tryouts", icon: ClipboardSignature },
+    { href: "/dashboard/schedule", label: "Schedule", icon: CalendarClock },
+    { href: "/dashboard/club-payments", label: "Payments", icon: Landmark },
+    { href: "/dashboard/forms", label: "Forms & waivers", icon: ClipboardPenLine },
+    { href: "/dashboard/documents", label: "Documents", icon: FileText },
+    { href: "/dashboard/recruiting", label: "Recruiting", icon: GraduationCap },
+    { href: "/dashboard/sponsors", label: "Sponsors", icon: Handshake },
+    { href: "/dashboard/website", label: "Website CMS", icon: MonitorCog },
+    { href: "/dashboard/reports", label: "Reports", icon: LineChart }
+  ];
 }
 
 export function studioNavigation(type: BusinessTypeCode) {

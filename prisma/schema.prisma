@@ -64,6 +64,7 @@ enum BusinessTypeCode {
   RESTAURANT
   RETAIL
   DANCE_STUDIO
+  SPORTS_CLUB
 }
 
 enum InquiryStatus {
@@ -166,8 +167,74 @@ enum ModuleKey {
   MENU
   RESERVATIONS
   EDUCATION
+  SPORTS
   INTEGRATIONS
   BILLING
+}
+
+enum SportsRole {
+  CLUB_OWNER
+  ADMINISTRATOR
+  COACH
+  TEAM_MANAGER
+  PARENT
+  PLAYER
+}
+
+enum SportsParticipantStatus {
+  ACTIVE
+  PROSPECT
+  INACTIVE
+  GRADUATED
+}
+
+enum SportsRosterStatus {
+  ACTIVE
+  PENDING
+  WAITLISTED
+  FORMER
+}
+
+enum SportsFormType {
+  TRYOUT
+  PLAYER_REGISTRATION
+  MEDICAL
+  WAIVER
+  VOLUNTEER
+  SPONSOR_INQUIRY
+}
+
+enum SportsSubmissionStatus {
+  NEW
+  REVIEWED
+  APPROVED
+  DECLINED
+}
+
+enum SportsInvoiceStatus {
+  DRAFT
+  OPEN
+  PENDING
+  PAID
+  PAST_DUE
+  VOID
+}
+
+enum SportsDocumentType {
+  BIRTH_CERTIFICATE
+  INSURANCE_CARD
+  MEDICAL_FORM
+  WAIVER
+  PLAYER_PHOTO
+  OTHER
+}
+
+enum SportsScheduleType {
+  PRACTICE
+  GAME
+  TOURNAMENT
+  TRYOUT
+  CLUB_EVENT
 }
 
 enum NotificationStatus {
@@ -228,36 +295,36 @@ model BusinessType {
 }
 
 model Business {
-  id                           String             @id @default(cuid())
+  id                           String                   @id @default(cuid())
   name                         String
-  slug                         String             @unique
+  slug                         String                   @unique
   description                  String
   website                      String?
   contactEmail                 String?
   phone                        String?
   address                      String?
   logoUrl                      String?
-  brandPrimary                 String             @default("#241915")
-  brandAccent                  String             @default("#733038")
-  timezone                     String             @default("America/New_York")
-  stripeCustomerId             String?            @unique
-  stripeAccountId              String?            @unique
-  stripeOnboardingStatus       String             @default("not_started")
-  stripeChargesEnabled         Boolean            @default(false)
-  stripePayoutsEnabled         Boolean            @default(false)
+  brandPrimary                 String                   @default("#241915")
+  brandAccent                  String                   @default("#733038")
+  timezone                     String                   @default("America/New_York")
+  stripeCustomerId             String?                  @unique
+  stripeAccountId              String?                  @unique
+  stripeOnboardingStatus       String                   @default("not_started")
+  stripeChargesEnabled         Boolean                  @default(false)
+  stripePayoutsEnabled         Boolean                  @default(false)
   stripeSubscriptionId         String?
-  subscriptionPlan             SubscriptionPlan   @default(STARTER)
-  subscriptionStatus           SubscriptionStatus @default(TRIALING)
+  subscriptionPlan             SubscriptionPlan         @default(STARTER)
+  subscriptionStatus           SubscriptionStatus       @default(TRIALING)
   subscriptionCurrentPeriodEnd DateTime?
   emailSenderName              String?
   emailSenderEmail             String?
   emailDomain                  String?
-  emailVerificationStatus      String             @default("not_configured")
-  launchStatus                 String             @default("NOT_STARTED")
+  emailVerificationStatus      String                   @default("not_configured")
+  launchStatus                 String                   @default("NOT_STARTED")
   launchChecklist              Json?
   launchNotes                  String?
   businessTypeId               String
-  businessType                 BusinessType       @relation(fields: [businessTypeId], references: [id])
+  businessType                 BusinessType             @relation(fields: [businessTypeId], references: [id])
   users                        User[]
   customers                    Customer[]
   inquiries                    Inquiry[]
@@ -291,9 +358,21 @@ model Business {
   userInvites                  UserInvite[]
   reminders                    Reminder[]
   messageTemplates             MessageTemplate[]
-  pilotFeedback                 PilotFeedback[]
-  createdAt                    DateTime           @default(now())
-  updatedAt                    DateTime           @updatedAt
+  pilotFeedback                PilotFeedback[]
+  sportsFamilies               SportsFamily[]
+  sportsPlayers                SportsPlayer[]
+  sportsCoaches                SportsCoach[]
+  sportsTeams                  SportsTeam[]
+  sportsRosters                SportsTeamRoster[]
+  sportsScheduleEvents         SportsScheduleEvent[]
+  sportsForms                  SportsForm[]
+  sportsFormSubmissions        SportsFormSubmission[]
+  sportsDocuments              SportsDocument[]
+  sportsInvoices               SportsInvoice[]
+  sponsors                     Sponsor[]
+  websitePages                 WebsitePage[]
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
 
   @@index([businessTypeId])
   @@index([subscriptionStatus])
@@ -301,26 +380,27 @@ model Business {
 }
 
 model User {
-  id             String          @id @default(cuid())
-  email          String          @unique
-  name           String
-  passwordHash   String
-  role           UserRole
-  isActive       Boolean         @default(true)
-  title          String?
-  avatarUrl      String?
-  businessId     String?
-  business       Business?       @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  sessions       Session[]
-  sentInvites    UserInvite[]    @relation("InvitesSentByUser")
-  inquiryNotes   InquiryNote[]
-  followUpEmails FollowUpEmail[]
-  notifications  Notification[]
-  reminders      Reminder[]
+  id                String             @id @default(cuid())
+  email             String             @unique
+  name              String
+  passwordHash      String
+  role              UserRole
+  isActive          Boolean            @default(true)
+  title             String?
+  avatarUrl         String?
+  businessId        String?
+  business          Business?          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  sessions          Session[]
+  sentInvites       UserInvite[]       @relation("InvitesSentByUser")
+  inquiryNotes      InquiryNote[]
+  followUpEmails    FollowUpEmail[]
+  notifications     Notification[]
+  reminders         Reminder[]
   registrationNotes RegistrationNote[]
-  pilotFeedback   PilotFeedback[]
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  pilotFeedback     PilotFeedback[]
+  sportsRole        SportsRole?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
   @@index([businessId])
   @@index([isActive])
@@ -358,34 +438,35 @@ model Session {
 }
 
 model Customer {
-  id                String            @id @default(cuid())
-  businessId        String
-  business          Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  name              String
-  email             String?
-  phone             String?
-  company           String?
-  source            String
-  segment           String
-  tags              String[]          @default([])
-  notes             String?
+  id                      String                   @id @default(cuid())
+  businessId              String
+  business                Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name                    String
+  email                   String?
+  phone                   String?
+  company                 String?
+  source                  String
+  segment                 String
+  tags                    String[]                 @default([])
+  notes                   String?
   registrationSubmissions RegistrationSubmission[]
-  familyProfile     FamilyProfile?
-  lifetimeValue     Decimal           @default(0) @db.Decimal(10, 2)
-  visits            Int               @default(0)
-  lastContactedAt   DateTime?
-  inquiries         Inquiry[]
-  sales             Sale[]
-  campaignEvents    CampaignEvent[]
-  followUpEmails    FollowUpEmail[]
-  reservations      Reservation[]
-  cateringInquiries CateringInquiry[]
-  orders            Order[]
-  conversations     Conversation[]
-  messages          Message[]
-  reminders         Reminder[]
-  createdAt         DateTime          @default(now())
-  updatedAt         DateTime          @updatedAt
+  familyProfile           FamilyProfile?
+  lifetimeValue           Decimal                  @default(0) @db.Decimal(10, 2)
+  visits                  Int                      @default(0)
+  lastContactedAt         DateTime?
+  inquiries               Inquiry[]
+  sales                   Sale[]
+  campaignEvents          CampaignEvent[]
+  followUpEmails          FollowUpEmail[]
+  reservations            Reservation[]
+  cateringInquiries       CateringInquiry[]
+  orders                  Order[]
+  conversations           Conversation[]
+  messages                Message[]
+  reminders               Reminder[]
+  sportsFamily            SportsFamily?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
 
   @@index([businessId])
   @@index([businessId, createdAt])
@@ -730,28 +811,301 @@ model Announcement {
 }
 
 model Event {
-  id            String    @id @default(cuid())
+  id            String       @id @default(cuid())
   businessId    String
-  business      Business  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business      Business     @relation(fields: [businessId], references: [id], onDelete: Cascade)
   classId       String?
   studioClass   StudioClass? @relation(fields: [classId], references: [id], onDelete: SetNull)
   title         String
   type          EventType
   description   String?
-  audience      String    @default("All families")
+  audience      String       @default("All families")
   startsAt      DateTime
   endsAt        DateTime?
   location      String?
   capacity      Int?
-  registrations Int       @default(0)
+  registrations Int          @default(0)
   archivedAt    DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
 
   @@index([businessId, type])
   @@index([businessId, startsAt])
   @@index([businessId, archivedAt])
   @@index([classId])
+}
+
+model SportsFamily {
+  id               String                 @id @default(cuid())
+  businessId       String
+  business         Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  customerId       String                 @unique
+  customer         Customer               @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  familyName       String
+  billingContact   String?
+  billingEmail     String?
+  paymentStatus    SportsInvoiceStatus    @default(OPEN)
+  emergencyContact String?
+  notes            String?
+  players          SportsPlayer[]
+  documents        SportsDocument[]
+  invoices         SportsInvoice[]
+  formSubmissions  SportsFormSubmission[]
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+
+  @@index([businessId, familyName])
+  @@index([businessId, paymentStatus])
+}
+
+model SportsPlayer {
+  id                   String                  @id @default(cuid())
+  businessId           String
+  business             Business                @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  familyId             String
+  family               SportsFamily            @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  firstName            String
+  lastName             String
+  birthDate            DateTime?
+  graduationYear       Int?
+  positions            String[]                @default([])
+  jerseyNumber         String?
+  phone                String?
+  email                String?
+  emergencyContact     String?
+  notes                String?
+  status               SportsParticipantStatus @default(PROSPECT)
+  gpa                  Decimal?                @db.Decimal(3, 2)
+  height               String?
+  weight               String?
+  throws               String?
+  bats                 String?
+  highlightVideoUrl    String?
+  recruitingNotes      String?
+  collegeInterestLevel String?
+  rosters              SportsTeamRoster[]
+  documents            SportsDocument[]
+  invoices             SportsInvoice[]
+  formSubmissions      SportsFormSubmission[]
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  @@index([businessId, status])
+  @@index([businessId, graduationYear])
+  @@index([familyId])
+}
+
+model SportsCoach {
+  id                    String            @id @default(cuid())
+  businessId            String
+  business              Business          @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name                  String
+  email                 String?
+  phone                 String?
+  certifications        String?
+  backgroundCheckStatus String            @default("PENDING")
+  notes                 String?
+  assignments           SportsTeamCoach[]
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+
+  @@index([businessId, name])
+}
+
+model SportsTeam {
+  id                 String                @id @default(cuid())
+  businessId         String
+  business           Business              @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name               String
+  ageGroup           String
+  season             String
+  practiceSchedule   String?
+  tournamentSchedule String?
+  active             Boolean               @default(true)
+  rosters            SportsTeamRoster[]
+  coaches            SportsTeamCoach[]
+  scheduleEvents     SportsScheduleEvent[]
+  invoices           SportsInvoice[]
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+
+  @@index([businessId, active])
+  @@index([businessId, season])
+}
+
+model SportsTeamRoster {
+  id         String             @id @default(cuid())
+  businessId String
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  teamId     String
+  team       SportsTeam         @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  playerId   String
+  player     SportsPlayer       @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  status     SportsRosterStatus @default(PENDING)
+  joinedAt   DateTime           @default(now())
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@unique([businessId, teamId, playerId])
+  @@index([teamId, status])
+  @@index([playerId, status])
+}
+
+model SportsTeamCoach {
+  id        String      @id @default(cuid())
+  teamId    String
+  team      SportsTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  coachId   String
+  coach     SportsCoach @relation(fields: [coachId], references: [id], onDelete: Cascade)
+  role      String      @default("Coach")
+  createdAt DateTime    @default(now())
+
+  @@unique([teamId, coachId])
+  @@index([coachId])
+}
+
+model SportsScheduleEvent {
+  id          String             @id @default(cuid())
+  businessId  String
+  business    Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  teamId      String?
+  team        SportsTeam?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  title       String
+  type        SportsScheduleType
+  startsAt    DateTime
+  endsAt      DateTime?
+  location    String?
+  opponent    String?
+  description String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([businessId, startsAt])
+  @@index([teamId, startsAt])
+}
+
+model SportsForm {
+  id          String                 @id @default(cuid())
+  businessId  String
+  business    Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  title       String
+  slug        String
+  type        SportsFormType
+  description String?
+  fee         Decimal                @default(0) @db.Decimal(10, 2)
+  active      Boolean                @default(true)
+  fields      Json?
+  submissions SportsFormSubmission[]
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  @@unique([businessId, slug])
+  @@index([businessId, type, active])
+}
+
+model SportsFormSubmission {
+  id         String                 @id @default(cuid())
+  businessId String
+  business   Business               @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  formId     String
+  form       SportsForm             @relation(fields: [formId], references: [id], onDelete: Cascade)
+  familyId   String?
+  family     SportsFamily?          @relation(fields: [familyId], references: [id], onDelete: SetNull)
+  playerId   String?
+  player     SportsPlayer?          @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  status     SportsSubmissionStatus @default(NEW)
+  data       Json
+  createdAt  DateTime               @default(now())
+  updatedAt  DateTime               @updatedAt
+
+  @@index([businessId, status])
+  @@index([formId, createdAt])
+  @@index([familyId])
+  @@index([playerId])
+}
+
+model SportsDocument {
+  id         String             @id @default(cuid())
+  businessId String
+  business   Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  familyId   String?
+  family     SportsFamily?      @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  playerId   String?
+  player     SportsPlayer?      @relation(fields: [playerId], references: [id], onDelete: Cascade)
+  name       String
+  type       SportsDocumentType
+  url        String?
+  status     String             @default("REQUESTED")
+  expiresAt  DateTime?
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
+
+  @@index([businessId, type])
+  @@index([familyId])
+  @@index([playerId])
+}
+
+model SportsInvoice {
+  id                    String              @id @default(cuid())
+  businessId            String
+  business              Business            @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  familyId              String
+  family                SportsFamily        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  playerId              String?
+  player                SportsPlayer?       @relation(fields: [playerId], references: [id], onDelete: SetNull)
+  teamId                String?
+  team                  SportsTeam?         @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  invoiceNumber         String
+  description           String
+  amount                Decimal             @db.Decimal(10, 2)
+  status                SportsInvoiceStatus @default(OPEN)
+  dueAt                 DateTime?
+  installmentPlan       String?
+  autoPay               Boolean             @default(false)
+  stripePaymentIntentId String?
+  stripeCheckoutId      String?
+  paymentMethod         String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  @@unique([businessId, invoiceNumber])
+  @@index([businessId, status])
+  @@index([familyId, status])
+  @@index([teamId])
+}
+
+model Sponsor {
+  id          String   @id @default(cuid())
+  businessId  String
+  business    Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  name        String
+  contactName String?
+  email       String?
+  phone       String?
+  tier        String?
+  status      String   @default("PROSPECT")
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([businessId, status])
+}
+
+model WebsitePage {
+  id         String   @id @default(cuid())
+  businessId String
+  business   Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  slug       String
+  title      String
+  summary    String?
+  content    String?
+  published  Boolean  @default(false)
+  updatedBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([businessId, slug])
+  @@index([businessId, published])
 }
 
 model RegistrationForm {
@@ -764,33 +1118,33 @@ model RegistrationForm {
   fee         Decimal                  @default(0) @db.Decimal(10, 2)
   active      Boolean                  @default(true)
   submissions RegistrationSubmission[]
-  createdAt   DateTime                @default(now())
-  updatedAt   DateTime                @updatedAt
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @updatedAt
 
   @@unique([businessId, slug])
   @@index([businessId, active])
 }
 
 model StudioClass {
-  id          String                   @id @default(cuid())
-  businessId  String
-  business    Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  className   String
-  ageRange    String
-  level       String
-  dayTime     String
-  instructor  String
-  capacity    Int
-  price       Decimal                  @default(0) @db.Decimal(10, 2)
-  active      Boolean                  @default(true)
-  archivedAt  DateTime?
-  submissions RegistrationSubmission[]
-  enrollments ClassEnrollment[]
+  id                String                   @id @default(cuid())
+  businessId        String
+  business          Business                 @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  className         String
+  ageRange          String
+  level             String
+  dayTime           String
+  instructor        String
+  capacity          Int
+  price             Decimal                  @default(0) @db.Decimal(10, 2)
+  active            Boolean                  @default(true)
+  archivedAt        DateTime?
+  submissions       RegistrationSubmission[]
+  enrollments       ClassEnrollment[]
   attendanceRecords AttendanceRecord[]
-  paymentRecords PaymentRecord[]
-  events      Event[]
-  createdAt   DateTime                 @default(now())
-  updatedAt   DateTime                 @updatedAt
+  paymentRecords    PaymentRecord[]
+  events            Event[]
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
 
   @@index([businessId, active])
   @@index([businessId, archivedAt])
@@ -830,11 +1184,11 @@ model FamilyProfile {
 }
 
 model StudentProfile {
-  id                   String        @id @default(cuid())
+  id                   String             @id @default(cuid())
   businessId           String
-  business             Business      @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  business             Business           @relation(fields: [businessId], references: [id], onDelete: Cascade)
   familyProfileId      String
-  familyProfile        FamilyProfile @relation(fields: [familyProfileId], references: [id], onDelete: Cascade)
+  familyProfile        FamilyProfile      @relation(fields: [familyProfileId], references: [id], onDelete: Cascade)
   firstName            String
   lastName             String
   gender               String
@@ -847,30 +1201,30 @@ model StudentProfile {
   enrollments          ClassEnrollment[]
   attendanceRecords    AttendanceRecord[]
   paymentRecords       PaymentRecord[]
-  createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 
   @@index([businessId])
   @@index([familyProfileId])
 }
 
 model ClassEnrollment {
-  id               String                  @id @default(cuid())
-  businessId       String
-  business         Business                @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  classId          String
-  studioClass      StudioClass             @relation(fields: [classId], references: [id], onDelete: Cascade)
-  studentProfileId String
-  studentProfile   StudentProfile          @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
-  registrationId   String?                 @unique
-  registration     RegistrationSubmission? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
-  status           EnrollmentStatus        @default(ACTIVE)
-  enrolledAt       DateTime                @default(now())
-  endedAt          DateTime?
+  id                String                  @id @default(cuid())
+  businessId        String
+  business          Business                @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  classId           String
+  studioClass       StudioClass             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentProfileId  String
+  studentProfile    StudentProfile          @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  registrationId    String?                 @unique
+  registration      RegistrationSubmission? @relation(fields: [registrationId], references: [id], onDelete: SetNull)
+  status            EnrollmentStatus        @default(ACTIVE)
+  enrolledAt        DateTime                @default(now())
+  endedAt           DateTime?
   attendanceRecords AttendanceRecord[]
-  paymentRecords   PaymentRecord[]
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
+  paymentRecords    PaymentRecord[]
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
 
   @@unique([businessId, classId, studentProfileId])
   @@index([businessId, status])
@@ -885,13 +1239,13 @@ model PaymentRecord {
   registrationId    String?
   registration      RegistrationSubmission?   @relation(fields: [registrationId], references: [id], onDelete: SetNull)
   familyProfileId   String?
-  familyProfile     FamilyProfile?           @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
+  familyProfile     FamilyProfile?            @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
   studentProfileId  String?
-  studentProfile    StudentProfile?          @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
+  studentProfile    StudentProfile?           @relation(fields: [studentProfileId], references: [id], onDelete: SetNull)
   classId           String?
-  studioClass       StudioClass?             @relation(fields: [classId], references: [id], onDelete: SetNull)
+  studioClass       StudioClass?              @relation(fields: [classId], references: [id], onDelete: SetNull)
   classEnrollmentId String?
-  classEnrollment   ClassEnrollment?         @relation(fields: [classEnrollmentId], references: [id], onDelete: SetNull)
+  classEnrollment   ClassEnrollment?          @relation(fields: [classEnrollmentId], references: [id], onDelete: SetNull)
   amount            Decimal                   @db.Decimal(10, 2)
   status            RegistrationPaymentStatus @default(UNPAID)
   source            String                    @default("manual")
@@ -930,57 +1284,57 @@ model AttendanceRecord {
 }
 
 model RegistrationSubmission {
-  id                     String                    @id @default(cuid())
-  businessId             String
-  business               Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
-  formId                 String
-  form                   RegistrationForm          @relation(fields: [formId], references: [id], onDelete: Cascade)
-  classId                String?
-  studioClass            StudioClass?              @relation(fields: [classId], references: [id], onDelete: SetNull)
-  customerId             String?
-  customer               Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  familyProfileId        String?
-  familyProfile          FamilyProfile?            @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
-  classEnrollment        ClassEnrollment?
-  status                 RegistrationStatus        @default(NEW)
-  paymentStatus          RegistrationPaymentStatus @default(UNPAID)
-  stripeSessionId        String?
-  stripePaymentIntentId  String?
-  referralSource         String
-  referralName           String?
-  familyLastName         String
-  homeAddress            String
-  city                   String
-  state                  String
-  zip                    String
-  primaryPhone           String
-  emergencyContactInfo   String
-  contact1FirstName      String
-  contact1LastName       String
-  contact1Type           String
-  contact1Phone          String
-  contact1Email          String
-  smsConsent             Boolean                   @default(false)
-  contact2FirstName      String?
-  contact2LastName       String?
-  contact2Type           String?
-  contact2Phone          String?
-  contact2Email          String?
-  studentFirstName       String
-  studentLastName        String
-  studentGender          String
-  birthDate              DateTime
-  studentPhone           String?
-  tshirtSize             String
-  gradeLevel             String
-  specialNeeds           String?
-  classInterest          String
-  trialClass             Boolean                   @default(false)
-  notes                  String?
-  internalNotes          RegistrationNote[]
-  paymentRecords         PaymentRecord[]
-  createdAt              DateTime                  @default(now())
-  updatedAt              DateTime                  @updatedAt
+  id                    String                    @id @default(cuid())
+  businessId            String
+  business              Business                  @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  formId                String
+  form                  RegistrationForm          @relation(fields: [formId], references: [id], onDelete: Cascade)
+  classId               String?
+  studioClass           StudioClass?              @relation(fields: [classId], references: [id], onDelete: SetNull)
+  customerId            String?
+  customer              Customer?                 @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  familyProfileId       String?
+  familyProfile         FamilyProfile?            @relation(fields: [familyProfileId], references: [id], onDelete: SetNull)
+  classEnrollment       ClassEnrollment?
+  status                RegistrationStatus        @default(NEW)
+  paymentStatus         RegistrationPaymentStatus @default(UNPAID)
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  referralSource        String
+  referralName          String?
+  familyLastName        String
+  homeAddress           String
+  city                  String
+  state                 String
+  zip                   String
+  primaryPhone          String
+  emergencyContactInfo  String
+  contact1FirstName     String
+  contact1LastName      String
+  contact1Type          String
+  contact1Phone         String
+  contact1Email         String
+  smsConsent            Boolean                   @default(false)
+  contact2FirstName     String?
+  contact2LastName      String?
+  contact2Type          String?
+  contact2Phone         String?
+  contact2Email         String?
+  studentFirstName      String
+  studentLastName       String
+  studentGender         String
+  birthDate             DateTime
+  studentPhone          String?
+  tshirtSize            String
+  gradeLevel            String
+  specialNeeds          String?
+  classInterest         String
+  trialClass            Boolean                   @default(false)
+  notes                 String?
+  internalNotes         RegistrationNote[]
+  paymentRecords        PaymentRecord[]
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
 
   @@index([businessId, status])
   @@index([businessId, paymentStatus])
@@ -1117,19 +1471,19 @@ model StripeWebhookEvent {
 }
 
 model PilotFeedback {
-  id           String   @id @default(cuid())
-  businessId   String
-  business     Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
+  id            String   @id @default(cuid())
+  businessId    String
+  business      Business @relation(fields: [businessId], references: [id], onDelete: Cascade)
   submittedById String?
-  submittedBy   User?   @relation(fields: [submittedById], references: [id], onDelete: SetNull)
-  type         String
-  area         String
-  message      String
-  priority     String
-  status       String   @default("NEW")
-  adminNotes   String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  submittedBy   User?    @relation(fields: [submittedById], references: [id], onDelete: SetNull)
+  type          String
+  area          String
+  message       String
+  priority      String
+  status        String   @default("NEW")
+  adminNotes    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@index([businessId, status])
   @@index([businessId, createdAt])

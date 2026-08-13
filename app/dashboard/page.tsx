@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertCircle, BarChart3, Bell, CalendarDays, CheckCircle2, CircleDollarSign, ClipboardCheck, ClipboardList, GraduationCap, Megaphone, ShoppingBag, Users } from "lucide-react";
+import { AlertCircle, BarChart3, Bell, CalendarDays, CheckCircle2, CircleDollarSign, ClipboardCheck, ClipboardList, GraduationCap, Megaphone, ShoppingBag, Trophy, Users } from "lucide-react";
 import { ActivityFeed } from "@/components/dashboard/ActivityFeed";
 import { CampaignPie, RevenueChart, TopItemsChart } from "@/components/dashboard/Charts";
 import { EmptyState, EmptyTableRow } from "@/components/dashboard/EmptyState";
@@ -14,6 +14,7 @@ import { businessTypeCopy } from "@/lib/business-config";
 import { getDashboardSummary, getJeteDashboardOverview, getSetupChecklistStatus } from "@/lib/dashboard-data";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { requireActiveTenant } from "@/server/tenant";
+import { getSportsOverview } from "@/lib/sports-data";
 
 export default async function DashboardPage() {
   const user = await requireActiveTenant("/dashboard");
@@ -228,6 +229,32 @@ export default async function DashboardPage() {
         </div>
 
         <ActivityFeed items={summary.activity} />
+      </>
+    );
+  }
+
+  if (type === "SPORTS_CLUB") {
+    const club = await getSportsOverview(user.business.id);
+    return (
+      <>
+        <PageHeader eyebrow="Club operations" title={`Good to see you, ${user.name.split(" ")[0]}.`} description="A daily view of players, team readiness, tryouts, club balances, and the upcoming baseball calendar." action={<span className="role-badge">{user.sportsRole?.replaceAll("_", " ").toLowerCase() ?? user.role.replaceAll("_", " ").toLowerCase()}</span>} />
+        <div className="panel hero-panel education" style={{ marginBottom: 16 }}>
+          <div><p className="eyebrow" style={{ color: "rgba(255,255,255,0.76)" }}>{user.business.name}</p><h2>Teams ready for the next pitch.</h2><p>Keep player development, family communication, schedules, and dues aligned in one club workspace.</p></div>
+          <div className="hero-stat"><strong>{club.activePlayers}</strong><span>active players across {club.teams.length} teams</span></div>
+        </div>
+        {setupChecklist ? <div style={{ marginBottom: 16 }}><SetupChecklistCard {...setupChecklist} /></div> : null}
+        <div className="grid cols-4" style={{ marginBottom: 16 }}>
+          <MetricCard icon={Users} label="Active players" value={club.activePlayers.toString()} delta={`${club.players.length} player profiles`} />
+          <MetricCard icon={Trophy} label="Active teams" value={club.teams.length.toString()} delta="Current season" />
+          <MetricCard icon={ClipboardList} label="Tryout submissions" value={club.tryouts.length.toString()} delta="Awaiting review" />
+          <MetricCard icon={CircleDollarSign} label="Open balances" value={formatCurrency(club.openBalances.reduce((sum, invoice) => sum + Number(invoice.amount), 0))} delta={`${club.openBalances.length} invoices`} />
+        </div>
+        <section className="panel" style={{ marginBottom: 16 }}><div className="panel-header"><div><h2>Quick actions</h2><p>Start with the work that keeps teams and families moving.</p></div></div><div className="panel-body"><div className="button-row"><Link className="button" href="/dashboard/players">Add player</Link><Link className="button secondary" href="/dashboard/teams">Manage teams</Link><Link className="button secondary" href="/dashboard/forms">Open tryout forms</Link><Link className="button secondary" href="/dashboard/schedule">Update schedule</Link></div></div></section>
+        <div className="grid cols-3">
+          <section className="panel" style={{ gridColumn: "span 2" }}><div className="panel-header"><div><h2>Team readiness</h2><p>Active rosters and coaches for the current season.</p></div><Trophy size={20} /></div><div className="panel-body table-wrap"><table className="data-table"><thead><tr><th>Team</th><th>Age group</th><th>Roster</th><th>Coaches</th><th>Practice</th></tr></thead><tbody>{club.teams.length ? club.teams.map((team) => <tr key={team.id}><td><Link className="table-link" href="/dashboard/teams">{team.name}</Link></td><td>{team.ageGroup}</td><td>{team.rosters.length}</td><td>{team.coaches.map((assignment) => assignment.coach.name).join(", ") || "Unassigned"}</td><td>{team.practiceSchedule ?? "Not set"}</td></tr>) : <EmptyTableRow columns={5} message="No teams yet. Create the first roster from Teams." />}</tbody></table></div></section>
+          <section className="panel"><div className="panel-header"><div><h2>Upcoming schedule</h2><p>Practices, games, and tournaments.</p></div><CalendarDays size={20} /></div><div className="panel-body">{club.schedule.length ? <div className="timeline-list">{club.schedule.map((event) => <article className="timeline-item" key={event.id}><div><strong>{event.title}</strong><StatusBadge status={event.type} /></div><p>{formatDate(event.startsAt)} · {event.team?.name ?? "Club-wide"}</p></article>)}</div> : <EmptyState title="No upcoming events" description="Add the next practice or tournament in Schedule." />}</div></section>
+        </div>
+        <div style={{ marginTop: 16 }}><ActivityFeed items={club.activity} /></div>
       </>
     );
   }

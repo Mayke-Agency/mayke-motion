@@ -8,3 +8,5 @@ coverage
 postgres-data
 postgres.log
 tsconfig.tsbuildinfo
+.vercel
+.env*

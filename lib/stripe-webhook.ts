@@ -31,6 +31,17 @@ type PaymentUpdateInput = {
   status: RegistrationPaymentStatus;
 };
 
+type SportsInvoicePaymentInput = {
+  actor: string;
+  amountCents?: number;
+  businessId?: string;
+  invoiceId?: string;
+  note: string;
+  paymentIntentId?: string;
+  sessionId?: string;
+  status: "PAID" | "PENDING" | "PAST_DUE";
+};
+
 function safeEqual(left: string, right: string) {
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
@@ -173,6 +184,24 @@ async function updateRegistrationPayment(input: PaymentUpdateInput) {
   return registration.businessId;
 }
 
+async function updateSportsInvoicePayment(input: SportsInvoicePaymentInput) {
+  const invoice = input.invoiceId
+    ? await prisma.sportsInvoice.findFirst({ where: { id: input.invoiceId, ...(input.businessId ? { businessId: input.businessId } : {}) }, include: { family: true, player: true } })
+    : input.sessionId
+      ? await prisma.sportsInvoice.findFirst({ where: { stripeCheckoutId: input.sessionId }, include: { family: true, player: true } })
+      : input.paymentIntentId
+        ? await prisma.sportsInvoice.findFirst({ where: { stripePaymentIntentId: input.paymentIntentId }, include: { family: true, player: true } })
+        : null;
+  if (!invoice) return null;
+  const amount = input.amountCents !== undefined ? input.amountCents / 100 : Number(invoice.amount);
+  await prisma.$transaction([
+    prisma.sportsInvoice.update({ where: { id: invoice.id }, data: { status: input.status, stripeCheckoutId: input.sessionId ?? invoice.stripeCheckoutId, stripePaymentIntentId: input.paymentIntentId ?? invoice.stripePaymentIntentId } }),
+    prisma.sportsFamily.update({ where: { id: invoice.familyId }, data: { paymentStatus: input.status === "PAID" ? "PAID" : "OPEN" } }),
+    prisma.activityLog.create({ data: { businessId: invoice.businessId, actor: input.actor, action: "Updated club invoice from Stripe webhook", entity: invoice.invoiceNumber, metadata: { invoiceId: invoice.id, amount, status: input.status, note: input.note } } })
+  ]);
+  return invoice.businessId;
+}
+
 export async function processStripeWebhookEvent(event: StripeEvent) {
   const existing = await prisma.stripeWebhookEvent.findUnique({
     where: { stripeEventId: event.id }
@@ -194,7 +223,8 @@ export async function processStripeWebhookEvent(event: StripeEvent) {
         registrationId: metadata.registrationId,
         sessionId: object.id,
         status: "PAID"
-      })) ?? null;
+      })) ??
+      (await updateSportsInvoicePayment({ actor: "Stripe webhook", amountCents: object.amount_total, businessId: metadata.businessId, invoiceId: metadata.sportsInvoiceId, sessionId: object.id, paymentIntentId: typeof object.payment_intent === "string" ? object.payment_intent : undefined, status: "PAID", note: `Stripe checkout.session.completed · ${event.id}` })) ?? null;
   }
 
   if (event.type === "payment_intent.succeeded") {
@@ -207,7 +237,8 @@ export async function processStripeWebhookEvent(event: StripeEvent) {
         paymentIntentId: object.id,
         registrationId: metadata.registrationId,
         status: "PAID"
-      })) ?? null;
+      })) ??
+      (await updateSportsInvoicePayment({ actor: "Stripe webhook", amountCents: object.amount_received, businessId: metadata.businessId, invoiceId: metadata.sportsInvoiceId, paymentIntentId: object.id, status: "PAID", note: `Stripe payment_intent.succeeded · ${event.id}` })) ?? null;
   }
 
   if (event.type === "payment_intent.payment_failed") {
@@ -220,7 +251,8 @@ export async function processStripeWebhookEvent(event: StripeEvent) {
         paymentIntentId: object.id,
         registrationId: metadata.registrationId,
         status: "FAILED"
-      })) ?? null;
+      })) ??
+      (await updateSportsInvoicePayment({ actor: "Stripe webhook", amountCents: object.amount_received, businessId: metadata.businessId, invoiceId: metadata.sportsInvoiceId, paymentIntentId: object.id, status: "PAST_DUE", note: `Stripe payment_intent.payment_failed · ${event.id}` })) ?? null;
   }
 
   await prisma.stripeWebhookEvent.create({

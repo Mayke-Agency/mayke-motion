@@ -13,6 +13,19 @@ function daysAgo(days: number) {
 
 async function main() {
   await prisma.session.deleteMany();
+  await prisma.sportsFormSubmission.deleteMany();
+  await prisma.sportsTeamRoster.deleteMany();
+  await prisma.sportsTeamCoach.deleteMany();
+  await prisma.sportsScheduleEvent.deleteMany();
+  await prisma.sportsDocument.deleteMany();
+  await prisma.sportsInvoice.deleteMany();
+  await prisma.sportsPlayer.deleteMany();
+  await prisma.sportsFamily.deleteMany();
+  await prisma.sportsCoach.deleteMany();
+  await prisma.sportsTeam.deleteMany();
+  await prisma.sportsForm.deleteMany();
+  await prisma.sponsor.deleteMany();
+  await prisma.websitePage.deleteMany();
   await prisma.campaignEvent.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.messageTemplate.deleteMany();
@@ -67,7 +80,15 @@ async function main() {
     }
   });
 
-  const [restaurant, retail, dance] = await Promise.all([
+  const sportsType = await prisma.businessType.create({
+    data: {
+      code: "SPORTS_CLUB",
+      name: "Sports Club",
+      description: "Club sports organizations managing players, families, teams, dues, schedules, and recruiting."
+    }
+  });
+
+  const [restaurant, retail, dance, sports] = await Promise.all([
     prisma.business.create({
       data: {
         name: "Coyote Grill",
@@ -114,6 +135,22 @@ async function main() {
         subscriptionPlan: "GROWTH",
         subscriptionStatus: "ACTIVE",
         businessTypeId: danceType.id
+      }
+    }),
+    prisma.business.create({
+      data: {
+        name: "Ghost Baseball Club",
+        slug: "ghost-baseball-club",
+        description: "A player-first travel baseball club developing confident athletes and connected families.",
+        website: "https://ghostbaseball.example",
+        contactEmail: "hello@ghostbaseball.example",
+        phone: "(646) 555-0127",
+        address: "225 River Avenue, New York, NY",
+        brandPrimary: "#181716",
+        brandAccent: "#7c2831",
+        subscriptionPlan: "GROWTH",
+        subscriptionStatus: "ACTIVE",
+        businessTypeId: sportsType.id
       }
     })
   ]);
@@ -176,6 +213,24 @@ async function main() {
         role: "STAFF",
         title: "Program coordinator",
         businessId: dance.id
+      },
+      {
+        email: "owner@ghostbaseball.com",
+        name: "Jordan Hayes",
+        passwordHash,
+        role: "CLIENT_OWNER",
+        sportsRole: "CLUB_OWNER",
+        title: "Club owner",
+        businessId: sports.id
+      },
+      {
+        email: "coach@ghostbaseball.com",
+        name: "Marcus Reed",
+        passwordHash,
+        role: "STAFF",
+        sportsRole: "COACH",
+        title: "Head coach",
+        businessId: sports.id
       },
       {
         email: "new@maykeclient.com",
@@ -926,7 +981,8 @@ async function main() {
     data: [
       { businessId: restaurant.id, domain: "coyotegrill.example", status: "managed_by_mayke", platform: "Next.js" },
       { businessId: retail.id, domain: "magohotsauce.example", status: "managed_by_mayke", platform: "Headless Shopify" },
-      { businessId: dance.id, domain: "jetedance.example", status: "managed_by_mayke", platform: "Next.js" }
+      { businessId: dance.id, domain: "jetedance.example", status: "managed_by_mayke", platform: "Next.js" },
+      { businessId: sports.id, domain: "ghostbaseball.example", status: "managed_by_mayke", platform: "Next.js" }
     ]
   });
 
@@ -940,7 +996,10 @@ async function main() {
       { businessId: retail.id, provider: "STRIPE", status: "NEEDS_ATTENTION", displayName: "Stripe Billing", accountLabel: "Subscription foundation connected" },
       { businessId: dance.id, provider: "RESEND", status: "CONNECTED", displayName: "Resend Email", accountLabel: "Parent email ready", lastSyncedAt: daysAgo(1) },
       { businessId: dance.id, provider: "TWILIO", status: "MOCK", displayName: "Twilio SMS", accountLabel: "SMS reminders staged" },
-      { businessId: dance.id, provider: "STRIPE", status: "NEEDS_ATTENTION", displayName: "Stripe Billing", accountLabel: "Registration payment foundation" }
+      { businessId: dance.id, provider: "STRIPE", status: "NEEDS_ATTENTION", displayName: "Stripe Billing", accountLabel: "Registration payment foundation" },
+      { businessId: sports.id, provider: "RESEND", status: "CONNECTED", displayName: "Resend Email", accountLabel: "Family updates ready", lastSyncedAt: daysAgo(1) },
+      { businessId: sports.id, provider: "STRIPE", status: "NEEDS_ATTENTION", displayName: "Stripe Connect", accountLabel: "Club dues collection staged" },
+      { businessId: sports.id, provider: "TWILIO", status: "MOCK", displayName: "Twilio SMS", accountLabel: "Emergency and practice reminders staged" }
     ]
   });
 
@@ -962,7 +1021,9 @@ async function main() {
       ...moduleRows.map((module) => ({ businessId: retail.id, ...module })),
       { businessId: retail.id, key: "PRODUCTS", label: "Products", description: "Product and inventory visibility." },
       ...moduleRows.map((module) => ({ businessId: dance.id, ...module })),
-      { businessId: dance.id, key: "EDUCATION", label: "Education", description: "Programs, recitals, registration, and parent communication." }
+      { businessId: dance.id, key: "EDUCATION", label: "Education", description: "Programs, recitals, registration, and parent communication." },
+      ...moduleRows.map((module) => ({ businessId: sports.id, ...module })),
+      { businessId: sports.id, key: "SPORTS", label: "Club operations", description: "Players, teams, schedules, forms, payments, recruiting, and sponsors." }
     ]
   });
 
@@ -1188,6 +1249,89 @@ async function main() {
       }
     ]
   });
+
+  const ghostCustomers = await prisma.customer.createManyAndReturn({
+    data: [
+      { businessId: sports.id, name: "Taylor Brooks", email: "taylor.brooks@example.com", phone: "(555) 019-1010", source: "Ghost tryout form", segment: "Tryout interest", tags: ["club", "tryout", "12u"], lifetimeValue: 850, visits: 4, createdAt: daysAgo(40) },
+      { businessId: sports.id, name: "Morgan Price", email: "morgan.price@example.com", phone: "(555) 019-2020", source: "Club referral", segment: "Active players", tags: ["club", "player", "13u"], lifetimeValue: 1400, visits: 11, createdAt: daysAgo(94) },
+      { businessId: sports.id, name: "Jordan Ellis", email: "jordan.ellis@example.com", phone: "(555) 019-3030", source: "Summer showcase", segment: "Active players", tags: ["club", "player", "14u"], lifetimeValue: 1200, visits: 8, createdAt: daysAgo(72) }
+    ]
+  });
+  const ghostFamilies = await Promise.all([
+    prisma.sportsFamily.create({ data: { businessId: sports.id, customerId: ghostCustomers[0].id, familyName: "Brooks", billingContact: "Taylor Brooks", billingEmail: ghostCustomers[0].email, emergencyContact: "Chris Brooks · (555) 019-1011" } }),
+    prisma.sportsFamily.create({ data: { businessId: sports.id, customerId: ghostCustomers[1].id, familyName: "Price", billingContact: "Morgan Price", billingEmail: ghostCustomers[1].email, emergencyContact: "Avery Price · (555) 019-2021" } }),
+    prisma.sportsFamily.create({ data: { businessId: sports.id, customerId: ghostCustomers[2].id, familyName: "Ellis", billingContact: "Jordan Ellis", billingEmail: ghostCustomers[2].email, emergencyContact: "Sam Ellis · (555) 019-3031" } })
+  ]);
+  const ghostPlayers = await prisma.sportsPlayer.createManyAndReturn({
+    data: [
+      { businessId: sports.id, familyId: ghostFamilies[0].id, firstName: "Evan", lastName: "Brooks", graduationYear: 2032, positions: ["Pitcher", "Shortstop"], jerseyNumber: "8", status: "PROSPECT", gpa: 3.7, throws: "Right", bats: "Right", collegeInterestLevel: "EARLY_STAGE" },
+      { businessId: sports.id, familyId: ghostFamilies[1].id, firstName: "Mason", lastName: "Price", graduationYear: 2031, positions: ["Catcher", "Third Base"], jerseyNumber: "14", status: "ACTIVE", gpa: 3.8, throws: "Right", bats: "Right", collegeInterestLevel: "EARLY_STAGE" },
+      { businessId: sports.id, familyId: ghostFamilies[2].id, firstName: "Noah", lastName: "Ellis", graduationYear: 2030, positions: ["Outfield", "First Base"], jerseyNumber: "22", status: "ACTIVE", gpa: 3.9, throws: "Left", bats: "Left", highlightVideoUrl: "https://video.example/ghost-noah-ellis", collegeInterestLevel: "BUILDING" }
+    ]
+  });
+  const ghostTeams = await prisma.sportsTeam.createManyAndReturn({
+    data: [
+      { businessId: sports.id, name: "Ghost 12U Navy", ageGroup: "12U", season: "Fall 2026", practiceSchedule: "Tuesdays and Thursdays · 6:00 PM", tournamentSchedule: "Two regional weekends per month" },
+      { businessId: sports.id, name: "Ghost 14U Black", ageGroup: "14U", season: "Fall 2026", practiceSchedule: "Mondays and Wednesdays · 7:00 PM", tournamentSchedule: "Showcase weekends and regional qualifiers" }
+    ]
+  });
+  const ghostCoaches = await prisma.sportsCoach.createManyAndReturn({
+    data: [
+      { businessId: sports.id, name: "Marcus Reed", email: "coach@ghostbaseball.com", phone: "(555) 019-4001", certifications: "USA Baseball, CPR/First Aid", backgroundCheckStatus: "COMPLETE" },
+      { businessId: sports.id, name: "Drew Wallace", email: "drew.wallace@example.com", phone: "(555) 019-4002", certifications: "USA Baseball", backgroundCheckStatus: "COMPLETE" }
+    ]
+  });
+  await prisma.sportsTeamRoster.createMany({ data: [
+    { businessId: sports.id, teamId: ghostTeams[0].id, playerId: ghostPlayers[0].id, status: "PENDING" },
+    { businessId: sports.id, teamId: ghostTeams[1].id, playerId: ghostPlayers[1].id, status: "ACTIVE" },
+    { businessId: sports.id, teamId: ghostTeams[1].id, playerId: ghostPlayers[2].id, status: "ACTIVE" }
+  ] });
+  await prisma.sportsTeamCoach.createMany({ data: [
+    { teamId: ghostTeams[0].id, coachId: ghostCoaches[0].id, role: "Head Coach" },
+    { teamId: ghostTeams[1].id, coachId: ghostCoaches[1].id, role: "Head Coach" }
+  ] });
+  const ghostTryoutForm = await prisma.sportsForm.create({ data: { businessId: sports.id, title: "2026 Ghost Baseball Club Tryouts", slug: "2026-ghost-baseball-tryouts", type: "TRYOUT", description: "Share player details and our coaching staff will confirm the right age-group tryout window.", fee: 0, fields: ["Parent name", "Parent email", "Player name", "Graduation year", "Positions", "Notes"] } });
+  await prisma.sportsForm.createMany({ data: [
+    { businessId: sports.id, title: "Player Registration + Dues", slug: "ghost-player-registration", type: "PLAYER_REGISTRATION", description: "Complete registration after team placement.", fee: 250 },
+    { businessId: sports.id, title: "Annual Medical + Waiver", slug: "ghost-medical-waiver", type: "WAIVER", description: "Required before the first team practice.", fee: 0 }
+  ] });
+  await prisma.sportsFormSubmission.create({ data: { businessId: sports.id, formId: ghostTryoutForm.id, familyId: ghostFamilies[0].id, playerId: ghostPlayers[0].id, status: "NEW", data: { parentName: "Taylor Brooks", playerName: "Evan Brooks", graduationYear: 2032, positions: ["Pitcher", "Shortstop"] } } });
+  await prisma.sportsScheduleEvent.createMany({ data: [
+    { businessId: sports.id, teamId: ghostTeams[0].id, title: "12U Navy Tryout", type: "TRYOUT", startsAt: daysAgo(-12), location: "Riverfront Field 2" },
+    { businessId: sports.id, teamId: ghostTeams[1].id, title: "14U Black Practice", type: "PRACTICE", startsAt: daysAgo(-5), location: "Riverfront Field 1" },
+    { businessId: sports.id, teamId: ghostTeams[1].id, title: "Hudson Valley Invitational", type: "TOURNAMENT", startsAt: daysAgo(-18), location: "Hudson Valley Sports Complex" }
+  ] });
+  await prisma.sportsInvoice.createMany({ data: [
+    { businessId: sports.id, familyId: ghostFamilies[1].id, playerId: ghostPlayers[1].id, teamId: ghostTeams[1].id, invoiceNumber: "GBC-0001", description: "Fall 2026 team dues", amount: 1400, status: "PAID", paymentMethod: "Card" },
+    { businessId: sports.id, familyId: ghostFamilies[2].id, playerId: ghostPlayers[2].id, teamId: ghostTeams[1].id, invoiceNumber: "GBC-0002", description: "Fall 2026 team dues · installment 1", amount: 400, status: "OPEN", dueAt: daysAgo(-7), installmentPlan: "4 monthly payments", autoPay: true },
+    { businessId: sports.id, familyId: ghostFamilies[0].id, playerId: ghostPlayers[0].id, teamId: ghostTeams[0].id, invoiceNumber: "GBC-0003", description: "Tryout registration fee", amount: 75, status: "OPEN", dueAt: daysAgo(-3) }
+  ] });
+  await prisma.sportsDocument.createMany({ data: [
+    { businessId: sports.id, familyId: ghostFamilies[1].id, playerId: ghostPlayers[1].id, name: "Mason Price birth certificate", type: "BIRTH_CERTIFICATE", status: "RECEIVED" },
+    { businessId: sports.id, familyId: ghostFamilies[2].id, playerId: ghostPlayers[2].id, name: "Noah Ellis medical form", type: "MEDICAL_FORM", status: "REQUESTED" },
+    { businessId: sports.id, familyId: ghostFamilies[0].id, playerId: ghostPlayers[0].id, name: "Evan Brooks club waiver", type: "WAIVER", status: "REQUESTED" }
+  ] });
+  await prisma.sponsor.createMany({ data: [
+    { businessId: sports.id, name: "River & Field Athletics", contactName: "Mila Grant", email: "mila@riverfield.example", tier: "Gold", status: "PARTNER" },
+    { businessId: sports.id, name: "Hudson Sports Medicine", contactName: "Dr. Lane", email: "lane@hudsonsports.example", tier: "Community", status: "CONTACTED" }
+  ] });
+  await prisma.websitePage.createMany({ data: [
+    { businessId: sports.id, slug: "home", title: "Baseball built for the next level.", summary: "Ghost Baseball Club develops confident players through disciplined training, strong team culture, and family partnership.", content: "Ghost Baseball Club is a player-first travel baseball program for athletes ready to develop their skills, confidence, and love of the game.", published: true },
+    { businessId: sports.id, slug: "about", title: "About Ghost Baseball Club", summary: "A clear player-development culture with a competitive edge.", content: "Our coaches build fundamentals, resilience, and team-first habits across every age group.", published: true },
+    { businessId: sports.id, slug: "teams", title: "Teams", summary: "Age-based teams built for growth and meaningful competition.", content: "Explore our current team groups, seasonal approach, practice cadence, and tournament schedule.", published: true },
+    { businessId: sports.id, slug: "coaches", title: "Coaches", summary: "Experienced mentors who put players first.", content: "Ghost coaches combine technical instruction, positive accountability, and clear communication with families.", published: true },
+    { businessId: sports.id, slug: "tryouts", title: "Tryouts", summary: "Find the right Ghost Baseball Club tryout window.", content: "Complete our tryout form and the coaching staff will share upcoming dates and age-group placement details.", published: true },
+    { businessId: sports.id, slug: "schedule", title: "Schedule", summary: "Practices, tournaments, and club events.", content: "Current schedule details are shared with families through the club portal and team communication channels.", published: true },
+    { businessId: sports.id, slug: "recruiting", title: "Recruiting", summary: "Long-term athlete development with a recruiting-aware foundation.", content: "Our player profiles evolve with academic, athletic, and video materials as athletes advance.", published: true },
+    { businessId: sports.id, slug: "sponsors", title: "Sponsors", summary: "Local partners that help young athletes grow.", content: "Ghost Baseball Club is proud to work with community-minded sponsors and partners.", published: true },
+    { businessId: sports.id, slug: "gallery", title: "Gallery", summary: "A look at Ghost Baseball Club in action.", content: "Photo and media galleries are managed by Mayke Agency and club staff.", published: true },
+    { businessId: sports.id, slug: "contact", title: "Contact", summary: "Connect with Ghost Baseball Club.", content: "For tryouts, team questions, and club partnerships, reach out through the club contact channel.", published: true }
+  ] });
+  await prisma.activityLog.createMany({ data: [
+    { businessId: sports.id, actor: "Jordan Hayes", action: "Reviewed tryout submission", entity: "Evan Brooks", metadata: { form: "2026 Ghost Baseball Club Tryouts" }, createdAt: daysAgo(1) },
+    { businessId: sports.id, actor: "Marcus Reed", action: "Updated 14U Black practice schedule", entity: "Ghost 14U Black", metadata: { schedule: "Monday and Wednesday" }, createdAt: daysAgo(2) },
+    { businessId: sports.id, actor: "Mayke Motion", action: "Provisioned Ghost Baseball Club workspace", entity: "Ghost Baseball Club", metadata: { modules: ["SPORTS", "CRM", "COMMUNICATIONS"] }, createdAt: daysAgo(4) }
+  ] });
 
   console.log("Seed complete");
   console.log(`Demo password for all users: ${password}`);

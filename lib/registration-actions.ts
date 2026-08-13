@@ -202,20 +202,14 @@ export async function submitRegistrationAction(first: FormData | RegistrationAct
 
   const classInterest = selectedClass?.className ?? parsed.data.classInterest;
   const fee = Number(form.fee);
-  if (fee > 0 && !isStripePaymentsReady(form.business)) {
-    return { error: stripeSetupMessage } satisfies RegistrationActionResult;
-  }
-
-  if (fee > 0 && !isStripeConfigured()) {
-    return { error: "Stripe API keys are not configured. Please contact Jete Dance Center to complete registration." } satisfies RegistrationActionResult;
-  }
+  const canCollectPayment = fee > 0 && isStripePaymentsReady(form.business) && isStripeConfigured();
 
   const registration = await prisma.registrationSubmission.create({
     data: {
       businessId: form.businessId,
       formId: form.id,
       classId: selectedClass?.id,
-      paymentStatus: fee > 0 ? "PENDING" : "UNPAID",
+      paymentStatus: canCollectPayment ? "PENDING" : fee > 0 ? "UNPAID" : "PAID",
       referralSource: parsed.data.referralSource,
       referralName: parsed.data.referralName || null,
       familyLastName: parsed.data.familyLastName,
@@ -260,7 +254,10 @@ export async function submitRegistrationAction(first: FormData | RegistrationAct
     }
   });
 
-  if (fee > 0) {
+  revalidatePath("/dashboard/registrations");
+  revalidatePath("/dashboard");
+
+  if (canCollectPayment) {
     try {
       const session = await createRegistrationCheckoutSession({
         businessId: form.businessId,
@@ -272,11 +269,14 @@ export async function submitRegistrationAction(first: FormData | RegistrationAct
       });
 
       await prisma.registrationSubmission.update({ where: { id: registration.id }, data: { stripeSessionId: session.id } });
+      revalidatePath("/dashboard/registrations");
 
       if (!session.url) return { error: "Stripe did not return a checkout URL." } satisfies RegistrationActionResult;
       redirect(session.url);
     } catch (error) {
       await prisma.registrationSubmission.update({ where: { id: registration.id }, data: { paymentStatus: "FAILED" } });
+      revalidatePath("/dashboard/registrations");
+      revalidatePath("/dashboard");
       return { error: error instanceof Error ? error.message : "Payment checkout could not be started." } satisfies RegistrationActionResult;
     }
   }
@@ -437,14 +437,24 @@ export async function convertRegistrationToCustomerAction(first: FormData | Regi
 
   const registration = await prisma.registrationSubmission.findFirst({
     where: { id: parsed.data.registrationId, businessId: user.business.id },
-    include: { familyProfile: true, customer: true, studioClass: true }
+    include: { familyProfile: { include: { students: true } }, customer: true, studioClass: true, classEnrollment: true }
   });
   if (!registration) return { error: "Registration was not found for this business." } satisfies RegistrationActionResult;
-  if (registration.familyProfileId) return { error: "Registration is already connected to a family profile." } satisfies RegistrationActionResult;
+  if (registration.familyProfileId && registration.familyProfile?.students.length && (!registration.classId || registration.classEnrollment)) {
+    return { error: "Registration is already connected to a family/student profile." } satisfies RegistrationActionResult;
+  }
 
-  const family = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const customer =
       registration.customer ??
+      (registration.contact1Email
+        ? await tx.customer.findFirst({
+            where: {
+              businessId: user.business.id,
+              email: registration.contact1Email
+            }
+          })
+        : null) ??
       (await tx.customer.create({
         data: {
           businessId: user.business.id,
@@ -490,28 +500,80 @@ export async function convertRegistrationToCustomerAction(first: FormData | Regi
       }));
 
     const selectedClass = registration.studioClass?.className ?? registration.classInterest;
-    await tx.studentProfile.create({
-      data: {
+    const existingStudent = await tx.studentProfile.findFirst({
+      where: {
         businessId: user.business.id,
         familyProfileId: familyProfile.id,
         firstName: registration.studentFirstName,
         lastName: registration.studentLastName,
-        gender: registration.studentGender,
-        birthDate: registration.birthDate,
-        phone: registration.studentPhone,
-        tshirtSize: registration.tshirtSize,
-        gradeLevel: registration.gradeLevel,
-        specialNeeds: registration.specialNeeds,
-        currentClassInterest: selectedClass
+        birthDate: registration.birthDate
       }
     });
+
+    const studentProfile =
+      existingStudent ??
+      (await tx.studentProfile.create({
+        data: {
+          businessId: user.business.id,
+          familyProfileId: familyProfile.id,
+          firstName: registration.studentFirstName,
+          lastName: registration.studentLastName,
+          gender: registration.studentGender,
+          birthDate: registration.birthDate,
+          phone: registration.studentPhone,
+          tshirtSize: registration.tshirtSize,
+          gradeLevel: registration.gradeLevel,
+          specialNeeds: registration.specialNeeds,
+          currentClassInterest: selectedClass
+        }
+      }));
+
+    let enrollmentId: string | null = registration.classEnrollment?.id ?? null;
+    let enrollmentStatus: "ACTIVE" | "WAITLISTED" | null = registration.classEnrollment?.status === "WAITLISTED" ? "WAITLISTED" : registration.classEnrollment?.status === "ACTIVE" ? "ACTIVE" : null;
+
+    if (registration.classId && !registration.classEnrollment) {
+      const studioClass = await tx.studioClass.findFirst({
+        where: { id: registration.classId, businessId: user.business.id, active: true, archivedAt: null },
+        include: {
+          enrollments: {
+            where: { status: "ACTIVE" }
+          }
+        }
+      });
+
+      if (studioClass) {
+        const status = studioClass.enrollments.length >= studioClass.capacity ? "WAITLISTED" : "ACTIVE";
+        const enrollment = await tx.classEnrollment.upsert({
+          where: {
+            businessId_classId_studentProfileId: {
+              businessId: user.business.id,
+              classId: studioClass.id,
+              studentProfileId: studentProfile.id
+            }
+          },
+          create: {
+            businessId: user.business.id,
+            classId: studioClass.id,
+            studentProfileId: studentProfile.id,
+            registrationId: registration.id,
+            status
+          },
+          update: {
+            registrationId: registration.id,
+            status
+          }
+        });
+        enrollmentId = enrollment.id;
+        enrollmentStatus = status;
+      }
+    }
 
     await tx.registrationSubmission.update({
       where: { id: registration.id },
       data: {
         customerId: customer.id,
         familyProfileId: familyProfile.id,
-        status: registration.status === "NEW" ? "REVIEWED" : registration.status
+        status: enrollmentId ? "ENROLLED" : "REVIEWED"
       }
     });
 
@@ -521,15 +583,25 @@ export async function convertRegistrationToCustomerAction(first: FormData | Regi
         actor: user.name,
         action: "Converted registration to family profile",
         entity: `${familyProfile.familyLastName} family`,
-        metadata: { registrationId: registration.id, customerId: customer.id, familyProfileId: familyProfile.id }
+        metadata: {
+          registrationId: registration.id,
+          customerId: customer.id,
+          familyProfileId: familyProfile.id,
+          studentProfileId: studentProfile.id,
+          enrollmentId,
+          enrollmentStatus
+        }
       }
     });
 
-    return familyProfile;
+    return { familyProfile, studentProfile, enrollmentId };
   });
 
   revalidatePath(`/dashboard/registrations/${registration.id}`);
-  revalidatePath(`/dashboard/families/${family.id}`);
+  revalidatePath(`/dashboard/families/${result.familyProfile.id}`);
   revalidatePath("/dashboard/customers");
-  return { success: "Registration converted to family profile." } satisfies RegistrationActionResult;
+  revalidatePath("/dashboard/families");
+  revalidatePath("/dashboard/classes");
+  if (registration.classId) revalidatePath(`/dashboard/classes/${registration.classId}`);
+  return { success: result.enrollmentId ? "Registration converted and student enrolled." : "Registration converted to family profile." } satisfies RegistrationActionResult;
 }
