@@ -11,9 +11,10 @@ export default async function DashboardLayout({
   const headerStore = await headers();
   const currentPath = headerStore.get("x-current-path") ?? "";
   const user = await requireActiveTenant(currentPath);
+  const theme = `theme-${user.business.businessType.code.toLowerCase().replaceAll("_", "-")}`;
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell ${theme}`}>
       <Sidebar
         user={{
           name: user.name,

@@ -443,6 +443,12 @@ button:disabled {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 292px minmax(0, 1fr);
+  background: var(--background);
+}
+
+.admin-shell {
+  min-height: 100vh;
+  background: var(--background);
 }
 
 .sidebar {

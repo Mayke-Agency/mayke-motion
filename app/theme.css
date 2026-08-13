@@ -42,6 +42,187 @@
   --content-max: 1480px;
 }
 
+/* Workspace themes only override tokens. Shared components stay structurally identical. */
+.theme-admin,
+.theme-retail,
+.theme-restaurant,
+.theme-dance-studio,
+.theme-sports-club {
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.theme-admin {
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-serif: Inter, ui-sans-serif, system-ui, sans-serif;
+  --background: #f6f8f7;
+  --foreground: #18221e;
+  --muted: #62716a;
+  --taupe-650: #62716a;
+  --taupe-800: #34423c;
+  --charcoal-950: #17221d;
+  --espresso-900: #234532;
+  --oxblood-700: #16834a;
+  --oxblood-800: #11683b;
+  --line: rgba(30, 50, 40, 0.13);
+  --line-strong: rgba(30, 50, 40, 0.22);
+  --panel: #ffffff;
+  --panel-strong: #ffffff;
+  --accent: #16834a;
+  --accent-soft: #dff3e6;
+  --success: #16834a;
+  --warning: #a66b13;
+  --danger: #c13740;
+  --shadow: 0 14px 34px rgba(18, 38, 28, 0.06);
+  --shadow-soft: 0 1px 2px rgba(18, 38, 28, 0.04);
+}
+
+.theme-retail {
+  --font-serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, ui-serif, serif;
+  --background: #f8f8f5;
+  --foreground: #1e2924;
+  --muted: #687269;
+  --taupe-650: #687269;
+  --taupe-800: #39443d;
+  --charcoal-950: #1b2921;
+  --espresso-900: #2d5040;
+  --oxblood-700: #2a7558;
+  --oxblood-800: #1f5d45;
+  --line: rgba(35, 63, 48, 0.14);
+  --line-strong: rgba(35, 63, 48, 0.24);
+  --panel: #ffffff;
+  --accent: #2a7558;
+  --accent-soft: #ddede4;
+  --success: #2a7558;
+  --shadow: 0 14px 34px rgba(28, 52, 39, 0.055);
+  --shadow-soft: 0 1px 2px rgba(28, 52, 39, 0.045);
+}
+
+.theme-restaurant {
+  --background: #faf8f4;
+  --foreground: #2a211c;
+  --muted: #71655c;
+  --taupe-650: #71655c;
+  --taupe-800: #4c3e35;
+  --charcoal-950: #28201b;
+  --espresso-900: #4b3027;
+  --oxblood-700: #9a4e38;
+  --oxblood-800: #7a3b2c;
+  --line: rgba(77, 48, 39, 0.15);
+  --line-strong: rgba(77, 48, 39, 0.24);
+  --panel: #fffdf9;
+  --accent: #9a4e38;
+  --accent-soft: #f0ddd5;
+  --success: #61734d;
+  --shadow: 0 14px 34px rgba(65, 40, 31, 0.055);
+  --shadow-soft: 0 1px 2px rgba(65, 40, 31, 0.045);
+}
+
+.theme-dance-studio {
+  --background: var(--ivory-100);
+  --foreground: var(--charcoal-950);
+  --muted: var(--taupe-650);
+  --panel: rgba(251, 248, 242, 0.9);
+}
+
+.theme-sports-club {
+  --font-sans: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
+  --background: #101613;
+  --foreground: #edf1ea;
+  --muted: #aab6ad;
+  --taupe-650: #aab6ad;
+  --taupe-800: #d8e0d9;
+  --charcoal-950: #0b100d;
+  --charcoal-900: #111a15;
+  --espresso-900: #18241d;
+  --oxblood-700: #b99343;
+  --oxblood-800: #8d702f;
+  --line: rgba(211, 224, 215, 0.16);
+  --line-strong: rgba(211, 224, 215, 0.28);
+  --panel: #17211b;
+  --panel-strong: #1c2921;
+  --accent: #b99343;
+  --accent-soft: #342d1b;
+  --metal: #d4bd76;
+  --success: #76ae73;
+  --warning: #d49b45;
+  --danger: #d96b61;
+  --shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
+  --shadow-soft: 0 1px 0 rgba(255, 255, 255, 0.045) inset;
+}
+
+.theme-admin .page-title h1,
+.theme-admin .panel h2,
+.theme-admin .panel h3 {
+  font-weight: 650;
+}
+
+.theme-sports-club .page-title h1,
+.theme-sports-club .panel h2,
+.theme-sports-club .panel h3,
+.theme-sports-club .metric-value {
+  font-family: var(--font-sans);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.theme-sports-club .sidebar {
+  border-color: rgba(212, 189, 118, 0.18);
+  background: #090e0b;
+}
+
+.theme-sports-club .business-pill,
+.theme-sports-club .user-strip {
+  border-color: rgba(212, 189, 118, 0.2);
+  background: rgba(212, 189, 118, 0.06);
+}
+
+.theme-sports-club .nav-link.active {
+  box-shadow: inset 3px 0 0 var(--metal);
+}
+
+.theme-sports-club .input,
+.theme-sports-club .select,
+.theme-sports-club .textarea,
+.theme-sports-club .detail-grid > div,
+.theme-sports-club .profile-card,
+.theme-sports-club .timeline-item,
+.theme-sports-club .module-toggle,
+.theme-sports-club .alert-item {
+  background: var(--panel-strong);
+  color: var(--foreground);
+}
+
+.theme-sports-club .button.secondary {
+  border-color: var(--line-strong);
+  background: transparent;
+  color: var(--foreground);
+}
+
+.theme-sports-club .button.secondary:hover {
+  border-color: var(--metal);
+  background: rgba(212, 189, 118, 0.1);
+}
+
+.theme-sports-club .metric-icon,
+.theme-sports-club .activity-dot {
+  border-color: rgba(212, 189, 118, 0.3);
+  background: rgba(212, 189, 118, 0.12);
+  color: var(--metal);
+}
+
+.theme-sports-club .data-table td strong,
+.theme-sports-club .detail-grid strong,
+.theme-sports-club .profile-card strong,
+.theme-sports-club .timeline-item strong,
+.theme-sports-club .empty-state strong,
+.theme-sports-club .setup-progress strong,
+.theme-sports-club .integration-gate strong {
+  color: var(--foreground);
+}
+
 .font-display {
   font-family: var(--font-serif);
   font-weight: 500;
