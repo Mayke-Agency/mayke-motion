@@ -1,4 +1,4 @@
-import type { BusinessTypeCode, ModuleKey, Prisma, PrismaClient } from "@prisma/client";
+import type { BusinessTypeCode, IntegrationProvider, ModuleKey, Prisma, PrismaClient } from "@prisma/client";
 import { getSegmentOptions } from "@/lib/segments";
 
 type ProvisionClient = PrismaClient | Prisma.TransactionClient;
@@ -21,15 +21,15 @@ const moduleLabels: Record<ModuleKey, { label: string; description: string }> = 
 const moduleDefaults: Record<BusinessTypeCode, ModuleKey[]> = {
   RETAIL: ["CRM", "PRODUCTS", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "INTEGRATIONS"],
   RESTAURANT: ["RESERVATIONS", "INQUIRIES", "CRM", "CAMPAIGNS", "COMMUNICATIONS", "MENU", "INTEGRATIONS"],
-  DANCE_STUDIO: ["EDUCATION", "COMMUNICATIONS", "CAMPAIGNS", "CRM", "INTEGRATIONS"]
-  ,SPORTS_CLUB: ["SPORTS", "CRM", "COMMUNICATIONS", "CAMPAIGNS", "ANALYTICS", "INTEGRATIONS"]
+  DANCE_STUDIO: ["EDUCATION", "COMMUNICATIONS", "CAMPAIGNS", "CRM", "INTEGRATIONS"],
+  SPORTS_CLUB: ["SPORTS", "CRM", "COMMUNICATIONS", "CAMPAIGNS", "ANALYTICS", "INTEGRATIONS"]
 };
 
 const dashboardLayouts: Record<BusinessTypeCode, string[]> = {
   RETAIL: ["setup", "priority-alerts", "revenue", "orders", "top-products", "campaigns", "activity"],
   RESTAURANT: ["setup", "priority-alerts", "reservations", "catering", "crm", "campaigns", "activity"],
-  DANCE_STUDIO: ["setup", "registrations", "families", "classes", "payments", "communication", "events"]
-  ,SPORTS_CLUB: ["setup", "players", "teams", "tryouts", "payments", "schedule", "communications"]
+  DANCE_STUDIO: ["setup", "registrations", "families", "classes", "payments", "communication", "events"],
+  SPORTS_CLUB: ["setup", "players", "teams", "tryouts", "payments", "schedule", "communications"]
 };
 
 const starterStatuses: Record<BusinessTypeCode, Record<string, string[]>> = {
@@ -65,8 +65,8 @@ const analyticsCards: Record<BusinessTypeCode, string[]> = {
 const communicationCategories: Record<BusinessTypeCode, string[]> = {
   RETAIL: ["Product question", "Order follow-up", "Wholesale", "Campaign reply"],
   RESTAURANT: ["Reservation", "Catering", "Private event", "Guest follow-up"],
-  DANCE_STUDIO: ["Registration", "Family follow-up", "Class update", "Payment", "Event reminder"]
-  ,SPORTS_CLUB: ["Tryout", "Team update", "Practice reminder", "Tournament update", "Payment reminder", "Emergency"]
+  DANCE_STUDIO: ["Registration", "Family follow-up", "Class update", "Payment", "Event reminder"],
+  SPORTS_CLUB: ["Tryout", "Team update", "Practice reminder", "Tournament update", "Payment reminder", "Emergency"]
 };
 
 const starterTemplates: Record<BusinessTypeCode, { name: string; type: "FOLLOW_UP" | "CAMPAIGN" | "ANNOUNCEMENT"; subject: string; body: string }[]> = {
@@ -88,6 +88,25 @@ const starterTemplates: Record<BusinessTypeCode, { name: string; type: "FOLLOW_U
     { name: "Dues reminder", type: "FOLLOW_UP", subject: "A payment reminder from {{business}}", body: "Hi {{firstName}},\n\nThis is a friendly reminder that your club balance is ready for review. Please contact us if you need payment-plan support.\n\nThank you,\n{{business}}" }
   ]
 };
+
+const sportsWebsitePages = [
+  ["home", "Home"],
+  ["about", "About"],
+  ["teams", "Teams"],
+  ["coaches", "Coaches"],
+  ["tryouts", "Tryouts"],
+  ["schedule", "Schedule"],
+  ["recruiting", "Recruiting"],
+  ["sponsors", "Sponsors"],
+  ["gallery", "Gallery"],
+  ["contact", "Contact"]
+] as const;
+
+const baselineIntegrations: { provider: IntegrationProvider; displayName: string }[] = [
+  { provider: "STRIPE", displayName: "Stripe Connect" },
+  { provider: "RESEND", displayName: "Resend email" },
+  { provider: "TWILIO", displayName: "SMS provider" }
+];
 
 function moduleConfig(type: BusinessTypeCode, key: ModuleKey) {
   return {
@@ -162,6 +181,42 @@ export async function provisionWorkspaceDefaults(input: {
     });
   }
 
+  await Promise.all(
+    baselineIntegrations.map((integration) =>
+      input.prisma.integration.upsert({
+        where: { businessId_provider: { businessId: input.businessId, provider: integration.provider } },
+        create: {
+          businessId: input.businessId,
+          provider: integration.provider,
+          displayName: integration.displayName,
+          status: "NEEDS_ATTENTION",
+          config: { setupRequired: true }
+        },
+        update: {}
+      })
+    )
+  );
+
+  if (input.businessType === "SPORTS_CLUB") {
+    await Promise.all(
+      sportsWebsitePages.map(([slug, title]) =>
+        input.prisma.websitePage.upsert({
+          where: { businessId_slug: { businessId: input.businessId, slug } },
+          create: {
+            businessId: input.businessId,
+            slug,
+            title,
+            summary: `${title} page for ${input.businessName}.`,
+            content: "",
+            published: false,
+            updatedBy: input.actor
+          },
+          update: {}
+        })
+      )
+    );
+  }
+
   await input.prisma.activityLog.create({
     data: {
       businessId: input.businessId,
@@ -175,7 +230,9 @@ export async function provisionWorkspaceDefaults(input: {
         starterStatuses: starterStatuses[input.businessType],
         analyticsCards: analyticsCards[input.businessType],
         communicationCategories: communicationCategories[input.businessType],
-        templatesCreated: existingTemplateCount ? 0 : starterTemplates[input.businessType].length
+        templatesCreated: existingTemplateCount ? 0 : starterTemplates[input.businessType].length,
+        baselineWebsitePages: input.businessType === "SPORTS_CLUB" ? sportsWebsitePages.map(([slug]) => slug) : [],
+        baselineIntegrations: baselineIntegrations.map(({ provider }) => provider)
       }
     }
   });

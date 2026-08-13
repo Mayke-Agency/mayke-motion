@@ -82,9 +82,9 @@ If npm says a script is missing or Prisma says `prisma/schema.prisma` is missing
 See `ENVIRONMENT.md` for provider-specific notes and production caveats.
 
 ```bash
-DATABASE_URL="postgresql://alancampos@localhost:55432/mayke_motion?schema=public"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DATABASE?schema=public"
 SESSION_COOKIE_NAME="mayke_motion_session"
-APP_URL="http://localhost:3000"
+APP_URL="http://127.0.0.1:3000"
 RESEND_API_KEY=""
 RESEND_FROM_EMAIL="Mayke Motion <onboarding@resend.dev>"
 STRIPE_SECRET_KEY=""
@@ -145,7 +145,9 @@ npm run staging:setup
 
 Do not run the full demo seed in staging unless the purpose is demo-data QA. `npm run staging:setup` creates only the minimal pilot workspace and accounts.
 
-## Demo Accounts
+## Local Demo Accounts
+
+These credentials exist only in a local database created by `npm run prisma:seed`. They are not displayed by the application, should not be used for production, and should not be seeded into a real client workspace.
 
 All demo accounts use:
 
@@ -227,7 +229,7 @@ With `RESEND_API_KEY` configured, “Send email” sends through Resend, stores 
 
 ## Known Limitations
 
-- This MVP uses first-party demo auth, not a hosted auth provider.
+- This MVP uses first-party, database-backed session auth; password-reset delivery and forced initial-password changes remain future work.
 - Settings fields are read-only placeholders until business profile editing is added.
 - Logo upload is a placeholder; no file storage provider is connected yet.
 - Sales, product, menu, and campaign integrations are represented by local Prisma data only.
@@ -245,7 +247,7 @@ With `RESEND_API_KEY` configured, “Send email” sends through Resend, stores 
 - Add production auth/session hardening before public deployment.
 - Expand Stripe webhook coverage for subscription lifecycle updates.
 - Integrate Stripe, Shopify, Toast, Square, and email/SMS providers behind feature flags.
-- Add role management and Mayke-admin client provisioning flows.
+- Continue expanding role management and secure invite acceptance flows.
 - Add automated integration sync jobs and operational module CRUD once provider credentials are available.
 
 ## Verified Commands

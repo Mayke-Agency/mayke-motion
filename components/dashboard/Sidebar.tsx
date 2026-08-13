@@ -32,28 +32,25 @@ export function Sidebar({ user, business, enabledModules }: SidebarProps) {
   const operations = operationsNavigation(business.businessType.code);
   const enabled = new Set(enabledModules);
   const hiddenForDance = new Set(["/dashboard/sales", "/dashboard/marketing", "/dashboard/analytics", "/dashboard/integrations", "/dashboard/billing"]);
-  const sportsItems = [
-    baseNavigation[0],
-    ...sportsNavigation(business.businessType.code).slice(0, 6),
-    baseNavigation[3],
-    ...sportsNavigation(business.businessType.code).slice(6),
-    baseNavigation.at(-1)!
-  ];
-  const defaultNavigation = [
-    baseNavigation[0],
-    baseNavigation[1],
-    baseNavigation[2],
-    baseNavigation[3],
-    ...(operations ? [operations] : []),
-    catalogNavigation(business.businessType.code),
-    ...studioNavigation(business.businessType.code),
-    ...baseNavigation.slice(4)
-  ];
-  const navigation = (business.businessType.code === "SPORTS_CLUB" ? sportsItems : defaultNavigation).filter((item) => {
+  const allSections = business.businessType.code === "SPORTS_CLUB"
+    ? [
+        { label: "Workspace", items: [baseNavigation[0], baseNavigation[1], baseNavigation[3], baseNavigation[4]] },
+        { label: "Club", items: sportsNavigation(business.businessType.code).slice(0, 6) },
+        { label: "Operations", items: sportsNavigation(business.businessType.code).slice(6, 9) },
+        { label: "Growth", items: [baseNavigation[6], baseNavigation[7], ...sportsNavigation(business.businessType.code).slice(9)] },
+        { label: "System", items: [baseNavigation[8], baseNavigation.at(-1)!] }
+      ]
+    : [
+        { label: "Workspace", items: [baseNavigation[0], baseNavigation[1], baseNavigation[2], baseNavigation[3], baseNavigation[4]] },
+        { label: "Operations", items: [...(operations ? [operations] : []), catalogNavigation(business.businessType.code), ...studioNavigation(business.businessType.code), baseNavigation[5]] },
+        { label: "Growth", items: [baseNavigation[6], baseNavigation[7]] },
+        { label: "System", items: [baseNavigation[8], baseNavigation[9], baseNavigation[10], baseNavigation.at(-1)!] }
+      ];
+  const sections = allSections.map((section) => ({ ...section, items: section.items.filter((item) => {
     if (business.businessType.code === "DANCE_STUDIO" && hiddenForDance.has(item.href)) return false;
     const module = navModuleForHref(item.href);
     return !module || enabled.has(module);
-  });
+  }) })).filter((section) => section.items.length > 0);
 
   return (
     <aside className="sidebar">
@@ -71,17 +68,22 @@ export function Sidebar({ user, business, enabledModules }: SidebarProps) {
       </div>
 
       <nav className="nav" aria-label="Dashboard navigation">
-        {navigation.map((item) => {
-          const Icon = item.icon;
-          const active = pathname === item.href;
+        {sections.map((section) => (
+          <div className="nav-section" key={section.label}>
+            <span className="nav-section-label">{section.label}</span>
+            {section.items.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href;
 
-          return (
-            <Link className={`nav-link ${active ? "active" : ""}`} href={item.href} key={item.href}>
-              <Icon size={17} />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+              return (
+                <Link className={`nav-link ${active ? "active" : ""}`} href={item.href} key={item.href}>
+                  <Icon size={17} />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="sidebar-footer">

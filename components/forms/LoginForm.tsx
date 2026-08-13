@@ -22,7 +22,6 @@ export function LoginForm({ nextPath = "" }: { nextPath?: string }) {
           type="text"
           inputMode="email"
           autoComplete="email"
-          defaultValue="owner@bloomtable.com"
           required
         />
       </div>
@@ -35,7 +34,6 @@ export function LoginForm({ nextPath = "" }: { nextPath?: string }) {
           name="password"
           type="password"
           autoComplete="current-password"
-          defaultValue="Motion2026!"
           required
         />
       </div>

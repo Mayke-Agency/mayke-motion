@@ -14,7 +14,7 @@ import { deactivateStaffUserAction, deleteMessageTemplateAction, removeDemoDataA
 import { requireAdmin } from "@/lib/auth";
 import { getAdminClient } from "@/lib/dashboard-data";
 
-const moduleKeys = ["CRM", "INQUIRIES", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "PRODUCTS", "MENU", "RESERVATIONS", "EDUCATION", "INTEGRATIONS", "BILLING"];
+const moduleKeys = ["CRM", "INQUIRIES", "CAMPAIGNS", "ANALYTICS", "COMMUNICATIONS", "PRODUCTS", "MENU", "RESERVATIONS", "EDUCATION", "SPORTS", "INTEGRATIONS", "BILLING"];
 const statuses = ["TRIALING", "ACTIVE", "PAST_DUE", "INCOMPLETE", "CANCELED", "UNPAID", "INACTIVE"];
 const launchStatuses = ["NOT_STARTED", "IN_PROGRESS", "READY_FOR_PILOT", "LIVE"];
 

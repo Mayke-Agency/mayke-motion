@@ -84,7 +84,7 @@ export async function loginAction(_previousState: { error?: string } | null, for
   });
 
   if (!user || !user.isActive || !(await verifyPassword(parsed.data.password, user.passwordHash))) {
-    return { error: "Those credentials did not match a Mayke Motion account." };
+    return { error: "Incorrect email or password." };
   }
 
   await createSession(user.id);
@@ -2280,7 +2280,28 @@ const adminClientSchema = z.object({
   subscriptionStatus: z.enum(["TRIALING", "ACTIVE", "PAST_DUE", "INCOMPLETE", "CANCELED", "UNPAID", "INACTIVE"])
 });
 
-const createAdminClientSchema = adminClientSchema.omit({ businessId: true });
+const createOrganizationSchema = z.object({
+  name: z.string().min(2).max(120),
+  slug: z
+    .string()
+    .min(2)
+    .max(48)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only."),
+  businessTypeId: z.string().min(1),
+  website: z.string().url().optional().or(z.literal("")),
+  contactEmail: z.string().email(),
+  phone: z.string().max(40).optional().or(z.literal("")),
+  address: z.string().min(2).max(160),
+  city: z.string().min(2).max(80),
+  state: z.string().min(2).max(80),
+  zip: z.string().min(3).max(20),
+  timezone: z.string().min(3).max(80),
+  brandPrimary: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  firstName: z.string().min(1).max(80),
+  lastName: z.string().min(1).max(80),
+  adminEmail: z.string().email(),
+  initialPassword: z.string().min(12).max(128)
+});
 const launchStatusValues = ["NOT_STARTED", "IN_PROGRESS", "READY_FOR_PILOT", "LIVE"] as const;
 const launchReadinessSchema = z.object({
   businessId: z.string().min(1),
@@ -2317,112 +2338,110 @@ function launchChecklistWithDemoCleanup(value: unknown) {
   };
 }
 
-export async function createAdminClientAction(first: FormData | ActionResult | null | undefined, second?: FormData) {
+export async function createOrganizationAction(first: FormData | ActionResult | null | undefined, second?: FormData) {
   const admin = await requireAdmin();
   const formData = resolveFormData(first, second);
-  const parsed = createAdminClientSchema.safeParse({
+  const parsed = createOrganizationSchema.safeParse({
     name: formString(formData, "name"),
+    slug: formString(formData, "slug"),
     businessTypeId: formString(formData, "businessTypeId"),
+    website: formString(formData, "website"),
     contactEmail: formString(formData, "contactEmail"),
-    brandPrimary: formString(formData, "brandPrimary") || "#14110f",
-    subscriptionStatus: formString(formData, "subscriptionStatus") || "TRIALING"
+    phone: formString(formData, "phone"),
+    address: formString(formData, "address"),
+    city: formString(formData, "city"),
+    state: formString(formData, "state"),
+    zip: formString(formData, "zip"),
+    timezone: formString(formData, "timezone") || "America/New_York",
+    brandPrimary: formString(formData, "brandPrimary") || "#241915",
+    firstName: formString(formData, "firstName"),
+    lastName: formString(formData, "lastName"),
+    adminEmail: formString(formData, "adminEmail").toLowerCase(),
+    initialPassword: formString(formData, "initialPassword")
   });
 
-  if (!parsed.success || !parsed.data.contactEmail) {
-    return { error: "Add a business name, business type, primary contact email, brand color, and account status." } satisfies ActionResult;
+  if (!parsed.success) {
+    return { error: "Complete the organization, primary contact, and client owner details with a 12-character password." } satisfies ActionResult;
   }
 
-  const businessType = await prisma.businessType.findUnique({
-    where: {
-      id: parsed.data.businessTypeId
-    }
-  });
+  const [businessType, existingBusiness, existingUser] = await Promise.all([
+    prisma.businessType.findUnique({ where: { id: parsed.data.businessTypeId } }),
+    prisma.business.findUnique({ where: { slug: parsed.data.slug } }),
+    prisma.user.findUnique({ where: { email: parsed.data.adminEmail }, select: { id: true } })
+  ]);
 
   if (!businessType) {
     return { error: "Choose a valid business type." } satisfies ActionResult;
   }
 
-  const selectedModules = new Set(formData.getAll("modules").filter((value): value is ModuleKey => typeof value === "string" && value in moduleLabels));
-  const moduleKeys = Object.keys(moduleLabels) as ModuleKey[];
-  const business = await prisma.business.create({
-    data: {
-      name: parsed.data.name,
-      slug: await uniqueBusinessSlug(parsed.data.name),
-      description: `${parsed.data.name} workspace managed by Mayke Agency.`,
-      contactEmail: parsed.data.contactEmail,
-      brandPrimary: parsed.data.brandPrimary,
-      brandAccent: "#733038",
-      address: "Address pending",
-      businessTypeId: businessType.id,
-      subscriptionStatus: parsed.data.subscriptionStatus,
-      modules: {
-        create: moduleKeys.map((key) => ({
-          key,
-          enabled: selectedModules.has(key),
-          label: moduleLabels[key].label,
-          description: moduleLabels[key].description
-        }))
-      }
-    }
-  });
-
-  const existingUser = await prisma.user.findUnique({
-    where: {
-      email: parsed.data.contactEmail
-    }
-  });
-
   if (existingUser) {
-    if (String(existingUser.role) === "ADMIN" || existingUser.businessId) {
-      return { error: "That contact email is already assigned to another Mayke Motion account." } satisfies ActionResult;
-    }
-
-    await prisma.user.update({
-      where: {
-        id: existingUser.id
-      },
-      data: {
-        businessId: business.id,
-        role: existingUser.role === "ADMIN" ? "ADMIN" : "CLIENT_OWNER"
-      }
-    });
-  } else {
-    await prisma.user.create({
-      data: {
-        email: parsed.data.contactEmail,
-        name: parsed.data.contactEmail.split("@")[0]?.replace(/[._-]+/g, " ") || "Client owner",
-        passwordHash: await bcrypt.hash("MaykeMotion123!", 10),
-        role: "CLIENT_OWNER",
-        title: "Owner",
-        businessId: business.id
-      }
-    });
+    return { error: "A Mayke Motion user already uses that client owner email." } satisfies ActionResult;
   }
 
-  await provisionWorkspaceDefaults({
-    actor: admin.name,
-    businessId: business.id,
-    businessName: business.name,
-    businessType: businessType.code,
-    prisma
-  });
+  if (existingBusiness) {
+    return { error: "That workspace slug is already in use." } satisfies ActionResult;
+  }
 
-  await prisma.activityLog.create({
-    data: {
-      businessId: business.id,
-      actor: admin.name,
-      action: "Created client workspace",
-      entity: business.name,
-      metadata: {
+  const passwordHash = await bcrypt.hash(parsed.data.initialPassword, 12);
+  let businessId = "";
+
+  try {
+    const business = await prisma.$transaction(async (tx) => {
+      const created = await tx.business.create({
+        data: {
+          name: parsed.data.name,
+          slug: parsed.data.slug,
+          description: `${parsed.data.name} workspace managed by Mayke Agency.`,
+          website: parsed.data.website || null,
+          contactEmail: parsed.data.contactEmail,
+          phone: parsed.data.phone || null,
+          address: `${parsed.data.address}, ${parsed.data.city}, ${parsed.data.state} ${parsed.data.zip}`,
+          timezone: parsed.data.timezone,
+          brandPrimary: parsed.data.brandPrimary,
+          brandAccent: "#733038",
+          businessTypeId: businessType.id
+        }
+      });
+
+      await tx.user.create({
+        data: {
+          email: parsed.data.adminEmail,
+          name: `${parsed.data.firstName} ${parsed.data.lastName}`,
+          passwordHash,
+          role: "CLIENT_OWNER",
+          title: "Owner",
+          businessId: created.id,
+          sportsRole: businessType.code === "SPORTS_CLUB" ? "CLUB_OWNER" : null
+        }
+      });
+
+      await provisionWorkspaceDefaults({
+        actor: admin.name,
+        businessId: created.id,
+        businessName: created.name,
         businessType: businessType.code,
-        enabledModules: Array.from(selectedModules),
-        subscriptionStatus: parsed.data.subscriptionStatus
-      }
-    }
-  });
+        prisma: tx
+      });
+
+      await tx.activityLog.create({
+        data: {
+          businessId: created.id,
+          actor: admin.name,
+          action: "Created client workspace",
+          entity: created.name,
+          metadata: { businessType: businessType.code, primaryContact: parsed.data.contactEmail }
+        }
+      });
+
+      return created;
+    });
+    businessId = business.id;
+  } catch {
+    return { error: "The workspace could not be created. Confirm the organization slug and owner email are unique." } satisfies ActionResult;
+  }
 
   revalidatePath("/admin");
-  redirect(`/admin/clients/${business.id}`);
+  redirect(`/admin/clients/${businessId}`);
 }
 
 export async function updateAdminClientAction(first: FormData | ActionResult | null | undefined, second?: FormData) {

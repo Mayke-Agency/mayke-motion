@@ -38,18 +38,9 @@ export default async function LoginPage({
           <p className="eyebrow">Secure access</p>
           <h2>Welcome back</h2>
           <p style={{ color: "var(--muted)", lineHeight: 1.6, marginBottom: 24 }}>
-            Sign in with a demo account to view a business-specific Mayke Motion workspace.
+            Sign in to continue to your Mayke Motion workspace.
           </p>
           <LoginForm nextPath={params.next ?? ""} />
-          <div className="demo-grid">
-            <strong>Demo accounts</strong>
-            <span>Restaurant owner: owner@bloomtable.com</span>
-            <span>Retail owner: owner@magohotsauce.com</span>
-            <span>Dance studio owner: owner@jetedance.com</span>
-            <span>New client onboarding: new@maykeclient.com</span>
-            <span>Admin: admin@mayke.agency</span>
-            <span>Password: Motion2026!</span>
-          </div>
         </div>
       </section>
     </main>

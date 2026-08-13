@@ -57,7 +57,7 @@ Protect staging with Vercel Deployment Protection when available. If password pr
 ## Local Variables
 
 ```bash
-DATABASE_URL="postgresql://alancampos@localhost:55432/mayke_motion?schema=public"
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:55432/mayke_motion?schema=public"
 SESSION_COOKIE_NAME="mayke_motion_session"
 APP_URL="http://localhost:3000"
 ```
@@ -107,11 +107,9 @@ npx prisma migrate deploy
 npx prisma generate
 ```
 
-For an initial controlled demo/admin setup, run the seed script once against the production database only if demo accounts are wanted:
+Do not run the full demo seed against a real production client workspace. Create the Mayke admin and client workspaces through the admin provisioning UI instead:
 
-```bash
-npm run prisma:seed
-```
+`/admin/organizations/new`
 
 For a real launch, prefer creating the Mayke admin and first client through a one-off production-safe setup script or the admin UI, then remove demo/test records using the admin cleanup tool before pilot launch.
 
