@@ -39,11 +39,11 @@ export default async function NewOrganizationPage() {
             <div className="form-grid">
               <div className="field">
                 <label htmlFor="organization-name">Business name</label>
-                <input className="input" id="organization-name" name="name" placeholder="Ghost Baseball Club" required />
+                <input className="input" id="organization-name" name="name" placeholder="Business name" required />
               </div>
               <div className="field">
                 <label htmlFor="organization-slug">Workspace slug</label>
-                <input className="input" id="organization-slug" name="slug" placeholder="ghost-baseball-club" pattern="[a-z0-9]+(-[a-z0-9]+)*" required />
+                <input className="input" id="organization-slug" name="slug" placeholder="business-name" pattern="[a-z0-9]+(-[a-z0-9]+)*" required />
               </div>
               <div className="field">
                 <label htmlFor="organization-type">Business type</label>

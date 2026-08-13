@@ -3,6 +3,7 @@ import "server-only";
 import type { BusinessTypeCode, InquiryStatus, ModuleKey } from "@prisma/client";
 import { isModuleEnabled } from "@/lib/module-access";
 import { prisma } from "@/lib/prisma";
+import { ensureSupportedBusinessTypes } from "@/lib/business-types";
 
 const inquiryStatuses = new Set(["NEW", "IN_PROGRESS", "FOLLOWED_UP", "CLOSED"]);
 const markedDemoTextFilters = [
@@ -1566,6 +1567,7 @@ export async function getCommunicationDetail(businessId: string, threadId: strin
 }
 
 export async function getAdminSnapshot() {
+  await ensureSupportedBusinessTypes(prisma);
   const [businesses, businessTypes, users, customers, revenue] = await Promise.all([
     prisma.business.findMany({
       include: {

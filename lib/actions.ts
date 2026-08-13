@@ -22,6 +22,7 @@ import {
 import { filterCustomersBySegment, getSegmentLabel, getSegmentOptions } from "@/lib/segments";
 import { createRegistrationCheckoutSession, createStripeCheckoutSession, createStripeCustomer, createStripePortalSession, isStripeConfigured } from "@/lib/stripe";
 import { provisionWorkspaceDefaults } from "@/lib/workspace-provisioning";
+import { ensureSupportedBusinessTypes } from "@/lib/business-types";
 
 export type ActionResult = {
   error?: string;
@@ -2363,6 +2364,8 @@ export async function createOrganizationAction(first: FormData | ActionResult | 
   if (!parsed.success) {
     return { error: "Complete the organization, primary contact, and client owner details with a 12-character password." } satisfies ActionResult;
   }
+
+  await ensureSupportedBusinessTypes(prisma);
 
   const [businessType, existingBusiness, existingUser] = await Promise.all([
     prisma.businessType.findUnique({ where: { id: parsed.data.businessTypeId } }),
