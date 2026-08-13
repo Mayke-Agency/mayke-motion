@@ -128,26 +128,26 @@
 .theme-sports-club {
   --font-sans: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
   --font-serif: "Arial Narrow", "Roboto Condensed", Impact, ui-sans-serif, system-ui, sans-serif;
-  --background: #101613;
-  --foreground: #edf1ea;
-  --muted: #aab6ad;
-  --taupe-650: #aab6ad;
-  --taupe-800: #d8e0d9;
-  --charcoal-950: #0b100d;
-  --charcoal-900: #111a15;
-  --espresso-900: #18241d;
-  --oxblood-700: #b99343;
-  --oxblood-800: #8d702f;
-  --line: rgba(211, 224, 215, 0.16);
-  --line-strong: rgba(211, 224, 215, 0.28);
-  --panel: #17211b;
-  --panel-strong: #1c2921;
-  --accent: #b99343;
-  --accent-soft: #342d1b;
-  --metal: #d4bd76;
-  --success: #76ae73;
-  --warning: #d49b45;
-  --danger: #d96b61;
+  --background: #080b10;
+  --foreground: #f4f8fc;
+  --muted: #a9b8c8;
+  --taupe-650: #a9b8c8;
+  --taupe-800: #dbe7f2;
+  --charcoal-950: #05070a;
+  --charcoal-900: #0a1018;
+  --espresso-900: #0d1d30;
+  --oxblood-700: #1976d2;
+  --oxblood-800: #105aa4;
+  --line: rgba(220, 233, 246, 0.16);
+  --line-strong: rgba(220, 233, 246, 0.3);
+  --panel: #0e1722;
+  --panel-strong: #142131;
+  --accent: #1976d2;
+  --accent-soft: #102b4a;
+  --metal: #f4f8fc;
+  --success: #65b38b;
+  --warning: #d6a34b;
+  --danger: #df6b6b;
   --shadow: 0 18px 42px rgba(0, 0, 0, 0.24);
   --shadow-soft: 0 1px 0 rgba(255, 255, 255, 0.045) inset;
 }
@@ -169,14 +169,14 @@
 }
 
 .theme-sports-club .sidebar {
-  border-color: rgba(212, 189, 118, 0.18);
-  background: #090e0b;
+  border-color: rgba(220, 233, 246, 0.14);
+  background: #05070a;
 }
 
 .theme-sports-club .business-pill,
 .theme-sports-club .user-strip {
-  border-color: rgba(212, 189, 118, 0.2);
-  background: rgba(212, 189, 118, 0.06);
+  border-color: rgba(220, 233, 246, 0.16);
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .theme-sports-club .nav-link.active {
@@ -203,13 +203,13 @@
 
 .theme-sports-club .button.secondary:hover {
   border-color: var(--metal);
-  background: rgba(212, 189, 118, 0.1);
+  background: rgba(244, 248, 252, 0.09);
 }
 
 .theme-sports-club .metric-icon,
 .theme-sports-club .activity-dot {
-  border-color: rgba(212, 189, 118, 0.3);
-  background: rgba(212, 189, 118, 0.12);
+  border-color: rgba(25, 118, 210, 0.4);
+  background: rgba(25, 118, 210, 0.14);
   color: var(--metal);
 }
 
