@@ -35,8 +35,8 @@
   --success: #6f6a42;
   --warning: #8a613b;
   --info: #62554c;
-  --radius: 6px;
-  --radius-sm: 3px;
+  --radius: 28px;
+  --radius-sm: 18px;
   --shadow: 0 22px 70px rgba(36, 25, 21, 0.08);
   --shadow-soft: 0 1px 0 rgba(255, 255, 255, 0.56) inset;
   --content-max: 1480px;
